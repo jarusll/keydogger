@@ -8,4 +8,4 @@ main.o: main.h main.c
 
 .PHONY: debug
 debug: dev
-	gdb expanse
+	sudo gdb expanse
