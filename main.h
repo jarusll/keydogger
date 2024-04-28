@@ -1,4 +1,5 @@
 #include <linux/input-event-codes.h>
+#include <stddef.h>
 
 static const char *key_matrix[] = {
     [KEY_1] = '1',
@@ -50,3 +51,19 @@ static const char *key_matrix[] = {
     [KEY_SLASH] = '/',
     [KEY_SPACE] = ' ',
 };
+
+#define HASH_SIZE 256
+
+struct hashitem {
+    size_t key;
+    char value;
+};
+
+struct hashtable {
+    struct hashitem items[HASH_SIZE];
+    size_t len;
+};
+
+struct hashitem get(size_t key);
+struct hashitem get_by_value(char value);
+void add_to_hashtable(size_t key, char value);

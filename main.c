@@ -5,12 +5,14 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <stddef.h>
 
 // Errors
 #define EOPEN 1
 #define EREAD 2
 
 static char *KEYBOARD_DEVICE = KEYBOARD_EVENT_PATH;
+static struct hashtable Hashtable;
 
 int main()
 {
@@ -21,7 +23,12 @@ int main()
         exit(EOPEN);
     }
 
-    start_expanding(&fkeyboard_device);
+    for (size_t i = 0; i < sizeof(key_matrix) / sizeof(key_matrix[0]); i++)
+    {
+        printf("%d", sizeof(key_matrix[i]));
+    }
+    // hashtable_init();
+    // start_expanding(&fkeyboard_device);
 }
 
 void make_global_trie(int count, ...)
@@ -60,6 +67,74 @@ void start_expanding(int *fkeyboard_device)
         if (event.type == EV_KEY && key_matrix[event.code] != NULL)
         {
             printf("Code %d | MatrixCode %s\n", event.code, key_matrix[event.code]);
+        }
+    }
+}
+
+struct hashitem get_null_hashitem()
+{
+    struct hashitem item;
+    item.key = 0;
+    item.value = '\0';
+    return item;
+}
+
+void hashtable_init()
+{
+    for (int i = 0; i < sizeof(key_matrix) / sizeof(key_matrix[0]); i++)
+    {
+        if (key_matrix[i] != NULL)
+        {
+            add_to_hashtable(i, key_matrix[i][0]);
+        }
+    }
+}
+
+struct hashitem get(size_t key)
+{
+    for (int i = 0; i < 256; i++)
+    {
+        if (Hashtable.items[i].key == key)
+        {
+            return Hashtable.items[i];
+        }
+    }
+
+    return get_null_hashitem();
+};
+
+struct hashitem get_by_value(char value)
+{
+    for (int i = 0; i < 256; i++)
+    {
+        if (Hashtable.items[i].value == value)
+        {
+            return Hashtable.items[i];
+        }
+    }
+
+    return get_null_hashitem();
+};
+
+void add_to_hashtable(size_t key, char value)
+{
+    for (size_t i = 0; i < HASH_SIZE; i++)
+    {
+        if (Hashtable.items[i].key == key)
+        {
+            Hashtable.items[i].value = value;
+            return;
+        }
+    }
+
+    for (size_t i = 0; i < HASH_SIZE; i++)
+    {
+        if (Hashtable.items[i].key == 0)
+        {
+            Hashtable.items[i].key = key;
+            Hashtable.items[i].value = value;
+            Hashtable.len++;
+            return;
         }
     }
 }
