@@ -1,2 +1,3 @@
 expanse
-*.o
+main.o
+settings.json
