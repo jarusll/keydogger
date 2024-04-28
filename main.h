@@ -47,7 +47,6 @@ static const int *key_matrix[] = {
     [KEY_M] = 50,
     [KEY_COMMA] = 51,
     [KEY_DOT] = 52,
-    [KEY_KPASTERISK] = 55,
     [KEY_SLASH] = 53,
     [KEY_SPACE] = 57,
 };
