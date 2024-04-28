@@ -11,7 +11,6 @@
 #define EREAD 2
 
 static char *KEYBOARD_DEVICE = KEYBOARD_EVENT_PATH;
-static struct trie Trie;
 
 int main()
 {
@@ -22,20 +21,7 @@ int main()
         exit(EOPEN);
     }
 
-    struct input_event event;
-    while (1)
-    {
-        int read_inputs = read(fkeyboard_device, &event, sizeof(struct input_event));
-        if (read_inputs < 0)
-        {
-            fprintf(STDERR_FILENO, "Error reading from %s", KEYBOARD_DEVICE);
-            exit(EREAD);
-        }
-        if (event.type == EV_KEY && key_matrix[event.code] != NULL)
-        {
-            printf("Code %d | MatrixCode %s\n", event.code, key_matrix[event.code]);
-        }
-    }
+    start_expanding(&fkeyboard_device);
 }
 
 void make_global_trie(int count, ...)
@@ -57,5 +43,23 @@ void add_to_global_trie(char *str)
     for (size_t i = 0; i < length; i++)
     {
         char character = str[i];
+    }
+}
+
+void start_expanding(int *fkeyboard_device)
+{
+    struct input_event event;
+    while (1)
+    {
+        int read_inputs = read(fkeyboard_device, &event, sizeof(struct input_event));
+        if (read_inputs < 0)
+        {
+            fprintf(STDERR_FILENO, "Error reading from %s", KEYBOARD_DEVICE);
+            exit(EREAD);
+        }
+        if (event.type == EV_KEY && key_matrix[event.code] != NULL)
+        {
+            printf("Code %d | MatrixCode %s\n", event.code, key_matrix[event.code]);
+        }
     }
 }
