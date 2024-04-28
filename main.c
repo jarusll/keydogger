@@ -6,10 +6,6 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
-#if !defined(BUFFER_SIZE)
-#define BUFFER_SIZE 1024
-#endif
-
 // Errors
 #define EOPEN 1
 #define EREAD 2
