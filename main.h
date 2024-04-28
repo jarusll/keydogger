@@ -1,5 +1,6 @@
 #include <linux/input-event-codes.h>
 #include <stddef.h>
+#include <stdbool.h>
 
 #define READABLE_KEYS 48
 
@@ -108,7 +109,18 @@ static const char *char_matrix[] = {
 struct trie {
     char character;
     struct trie *next[READABLE_KEYS];
+    size_t keycode;
+    bool is_leaf;
+    struct trie *parent;
+    char *expansion;
 };
 
-void init_trie(struct trie *trie);
-void push_trie(struct trie *trie, char character);
+bool valid_key_code(size_t code);
+char get_char_from_keycode(size_t keycode);
+void send_backspace(int *device_fd, size_t n);
+void send_sync(int *device_fd);
+void init_trie(struct trie *trie, char character);
+size_t get_position_from_char(char character);
+size_t get_keycode_from_char(char character);
+void push_trie(char *key, char *expansion);
+void start_expanse(int *keyboard_device);
