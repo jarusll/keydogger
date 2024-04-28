@@ -9,3 +9,7 @@ main.o: main.h main.c
 .PHONY: debug
 debug: dev
 	sudo gdb expanse
+
+.PHONY: memcheck
+memcheck: dev
+	valgrind --tool=memcheck ./expanse
