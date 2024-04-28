@@ -13,7 +13,6 @@
 // Errors
 #define EOPEN 1
 #define EREAD 2
-#define EORNG 3
 
 static char *KEYBOARD_DEVICE = KEYBOARD_EVENT_PATH;
 static char BUFFER[BUFFER_SIZE];
