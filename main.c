@@ -4,7 +4,7 @@
 #include <linux/input.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <string.h>
+#include <stdarg.h>
 
 #if !defined(BUFFER_SIZE)
 #define BUFFER_SIZE 1024
@@ -15,7 +15,7 @@
 #define EREAD 2
 
 static char *KEYBOARD_DEVICE = KEYBOARD_EVENT_PATH;
-static char BUFFER[BUFFER_SIZE];
+static struct trie Trie;
 
 int main()
 {
@@ -35,26 +35,31 @@ int main()
             fprintf(STDERR_FILENO, "Error reading from %s", KEYBOARD_DEVICE);
             exit(EREAD);
         }
-        if (event.type == EV_KEY)
+        if (event.type == EV_KEY && key_matrix[event.code] != NULL)
         {
-            printf("Code %d | MatrixCode %d\n", event.code, key_matrix[event.code]);
-            // if (event.code == KEY_A && event.value == 0)
-            // {
-            //     printf("pressed A");
-            //     struct input_event sending_event;
-            //     sending_event.code = KEY_0;
-            //     sending_event.type = EV_KEY;
-            //     sending_event.value = 1;
-            //     write(fkeyboard_device, &sending_event, sizeof(struct input_event));
-
-            //     sending_event.value = 0;
-            //     write(fkeyboard_device, &sending_event, sizeof(struct input_event));
-            //     sending_event.type = EV_SYN;
-            //     sending_event.code = SYN_REPORT;
-            //     sending_event.value = 0;
-            //     write(fkeyboard_device, &sending_event, sizeof(struct input_event));
-            //     continue;
-            // }
+            printf("Code %d | MatrixCode %s\n", event.code, key_matrix[event.code]);
         }
+    }
+}
+
+void make_global_trie(int count, ...)
+{
+    va_list args;
+    va_start(args, count);
+    for (int i = 0; i < count; i++)
+    {
+        char *string = va_arg(args, char *);
+        add_to_global_trie(string);
+    }
+    va_end(args);
+}
+
+void add_to_global_trie(char *str)
+{
+    size_t length = strlen(str);
+
+    for (size_t i = 0; i < length; i++)
+    {
+        char character = str[i];
     }
 }
