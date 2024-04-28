@@ -59,19 +59,3 @@ int main()
         }
     }
 }
-
-struct input_event make_event(int key_code)
-{
-    if ((key_code >= KEY_1 && key_code <= KEY_BACKSPACE) ||
-        (key_code >= KEY_Q && key_code <= KEY_RIGHTBRACE) ||
-        (key_code >= KEY_A && key_code <= KEY_APOSTROPHE) ||
-        (key_code >= KEY_Z && key_code <= KEY_SLASH))
-    {
-        struct input_event event;
-        event.code = key_code;
-        event.type = EV_KEY;
-        return event;
-    }
-
-    exit(EORNG);
-}
