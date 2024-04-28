@@ -37,24 +37,24 @@ int main()
         }
         if (event.type == EV_KEY)
         {
-            printf("Pressed %d", event.code);
-            if (event.code == KEY_A && event.value == 0)
-            {
-                printf("pressed A");
-                struct input_event sending_event;
-                sending_event.code = KEY_0;
-                sending_event.type = EV_KEY;
-                sending_event.value = 1;
-                write(fkeyboard_device, &sending_event, sizeof(struct input_event));
+            printf("Code %d | MatrixCode %d\n", event.code, key_matrix[event.code]);
+            // if (event.code == KEY_A && event.value == 0)
+            // {
+            //     printf("pressed A");
+            //     struct input_event sending_event;
+            //     sending_event.code = KEY_0;
+            //     sending_event.type = EV_KEY;
+            //     sending_event.value = 1;
+            //     write(fkeyboard_device, &sending_event, sizeof(struct input_event));
 
-                sending_event.value = 0;
-                write(fkeyboard_device, &sending_event, sizeof(struct input_event));
-                sending_event.type = EV_SYN;
-                sending_event.code = SYN_REPORT;
-                sending_event.value = 0;
-                write(fkeyboard_device, &sending_event, sizeof(struct input_event));
-                continue;
-            }
+            //     sending_event.value = 0;
+            //     write(fkeyboard_device, &sending_event, sizeof(struct input_event));
+            //     sending_event.type = EV_SYN;
+            //     sending_event.code = SYN_REPORT;
+            //     sending_event.value = 0;
+            //     write(fkeyboard_device, &sending_event, sizeof(struct input_event));
+            //     continue;
+            // }
         }
     }
 }
