@@ -6,13 +6,57 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stddef.h>
+#include <stdbool.h>
 
 // Errors
 #define EOPEN 1
 #define EREAD 2
+#define READABLE_KEYS 48
 
 static char *KEYBOARD_DEVICE = KEYBOARD_EVENT_PATH;
-static struct hashtable Hashtable;
+
+bool valid_key_code(size_t code)
+{
+    for (size_t i = 0; i < READABLE_KEYS; i++)
+    {
+        if (key_codes[i] == code)
+            return true;
+    }
+    return false;
+}
+
+char get_char_from_keycode(size_t keycode)
+{
+    for (size_t i = 0; i < READABLE_KEYS; i++)
+    {
+        if (key_codes[i] == keycode)
+        {
+            return char_matrix[i];
+        }
+    }
+}
+
+void send_backspace(int *device_fd, size_t n)
+{
+    struct input_event event;
+    event.code = KEY_BACKSPACE;
+    event.type = EV_KEY;
+    for (size_t i = 0; i < n; i++)
+    {
+        event.value = 1;
+        write(device_fd, &event, sizeof(event));
+        event.value = 0;
+        write(device_fd, &event, sizeof(event));
+    }
+}
+
+void send_sync(int *device_fd)
+{
+    struct input_event event;
+    event.type = EV_SYN;
+    event.value = SYN_REPORT;
+    write(device_fd, &event, sizeof(event));
+}
 
 int main()
 {
@@ -23,38 +67,6 @@ int main()
         exit(EOPEN);
     }
 
-    for (size_t i = 0; i < sizeof(key_matrix) / sizeof(key_matrix[0]); i++)
-    {
-        printf("%d", sizeof(key_matrix[i]));
-    }
-    // hashtable_init();
-    // start_expanding(&fkeyboard_device);
-}
-
-void make_global_trie(int count, ...)
-{
-    va_list args;
-    va_start(args, count);
-    for (int i = 0; i < count; i++)
-    {
-        char *string = va_arg(args, char *);
-        add_to_global_trie(string);
-    }
-    va_end(args);
-}
-
-void add_to_global_trie(char *str)
-{
-    size_t length = strlen(str);
-
-    for (size_t i = 0; i < length; i++)
-    {
-        char character = str[i];
-    }
-}
-
-void start_expanding(int *fkeyboard_device)
-{
     struct input_event event;
     while (1)
     {
@@ -64,77 +76,20 @@ void start_expanding(int *fkeyboard_device)
             fprintf(STDERR_FILENO, "Error reading from %s", KEYBOARD_DEVICE);
             exit(EREAD);
         }
-        if (event.type == EV_KEY && key_matrix[event.code] != NULL)
+        if (event.type == EV_KEY && valid_key_code(event.code) && event.value == 1)
         {
-            printf("Code %d | MatrixCode %s\n", event.code, key_matrix[event.code]);
-        }
-    }
-}
-
-struct hashitem get_null_hashitem()
-{
-    struct hashitem item;
-    item.key = 0;
-    item.value = '\0';
-    return item;
-}
-
-void hashtable_init()
-{
-    for (int i = 0; i < sizeof(key_matrix) / sizeof(key_matrix[0]); i++)
-    {
-        if (key_matrix[i] != NULL)
-        {
-            add_to_hashtable(i, key_matrix[i][0]);
-        }
-    }
-}
-
-struct hashitem get(size_t key)
-{
-    for (int i = 0; i < 256; i++)
-    {
-        if (Hashtable.items[i].key == key)
-        {
-            return Hashtable.items[i];
-        }
-    }
-
-    return get_null_hashitem();
-};
-
-struct hashitem get_by_value(char value)
-{
-    for (int i = 0; i < 256; i++)
-    {
-        if (Hashtable.items[i].value == value)
-        {
-            return Hashtable.items[i];
-        }
-    }
-
-    return get_null_hashitem();
-};
-
-void add_to_hashtable(size_t key, char value)
-{
-    for (size_t i = 0; i < HASH_SIZE; i++)
-    {
-        if (Hashtable.items[i].key == key)
-        {
-            Hashtable.items[i].value = value;
-            return;
-        }
-    }
-
-    for (size_t i = 0; i < HASH_SIZE; i++)
-    {
-        if (Hashtable.items[i].key == 0)
-        {
-            Hashtable.items[i].key = key;
-            Hashtable.items[i].value = value;
-            Hashtable.len++;
-            return;
+            // printf("Code %d | Char %c\n", event.code, get_char_from_keycode(event.code));
+            if (event.code == KEY_A)
+            {
+                send_backspace(fkeyboard_device, 1);
+                event.code = KEY_0;
+                event.type = EV_KEY;
+                event.value = 1;
+                write(fkeyboard_device, &event, sizeof(event));
+                event.value = 0;
+                write(fkeyboard_device, &event, sizeof(event));
+                send_sync(fkeyboard_device);
+            }
         }
     }
 }

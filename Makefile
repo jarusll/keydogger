@@ -10,6 +10,6 @@ main.o: main.h main.c
 debug: dev
 	sudo gdb expanse
 
-.PHONY: memcheck
+.phony: memcheck
 memcheck: dev
-	valgrind --tool=memcheck ./expanse
+	sudo valgrind --tool=memcheck ./expanse
