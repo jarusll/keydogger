@@ -1,6 +1,8 @@
 #include <linux/input-event-codes.h>
 #include <stddef.h>
 
+#define READABLE_KEYS 48
+
 static const size_t *key_codes[] = {
     KEY_1,
     KEY_2,
@@ -52,7 +54,6 @@ static const size_t *key_codes[] = {
     KEY_SPACE,
 };
 
-
 static const char *char_matrix[] = {
     '1',
     '2',
@@ -103,3 +104,11 @@ static const char *char_matrix[] = {
     '/',
     ' ',
 };
+
+struct trie {
+    char character;
+    struct trie *next[READABLE_KEYS];
+};
+
+void init_trie(struct trie *trie);
+void push_trie(struct trie *trie, char character);

@@ -11,9 +11,9 @@
 // Errors
 #define EOPEN 1
 #define EREAD 2
-#define READABLE_KEYS 48
 
 static char *KEYBOARD_DEVICE = KEYBOARD_EVENT_PATH;
+static struct trie *TRIE = NULL;
 
 bool valid_key_code(size_t code)
 {
@@ -58,6 +58,23 @@ void send_sync(int *device_fd)
     write(device_fd, &event, sizeof(event));
 }
 
+void init_trie(struct trie *trie, char character)
+{
+    trie->character = '\0';
+    if (character != NULL)
+    {
+        trie->character = character;
+    }
+    for (size_t i = 0; i < READABLE_KEYS; i++)
+    {
+        trie->next[i] = NULL;
+    }
+}
+
+void push_trie(char character)
+{
+}
+
 int main()
 {
     int fkeyboard_device = open(KEYBOARD_DEVICE, O_RDWR | O_APPEND, NULL);
@@ -66,11 +83,14 @@ int main()
         fprintf(STDERR_FILENO, "Error opening %s", KEYBOARD_DEVICE);
         exit(EOPEN);
     }
+}
 
+void start_expanse(int *keyboard_device)
+{
     struct input_event event;
     while (1)
     {
-        int read_inputs = read(fkeyboard_device, &event, sizeof(struct input_event));
+        int read_inputs = read(keyboard_device, &event, sizeof(struct input_event));
         if (read_inputs < 0)
         {
             fprintf(STDERR_FILENO, "Error reading from %s", KEYBOARD_DEVICE);
@@ -81,14 +101,14 @@ int main()
             // printf("Code %d | Char %c\n", event.code, get_char_from_keycode(event.code));
             if (event.code == KEY_A)
             {
-                send_backspace(fkeyboard_device, 1);
+                send_backspace(keyboard_device, 1);
                 event.code = KEY_0;
                 event.type = EV_KEY;
                 event.value = 1;
-                write(fkeyboard_device, &event, sizeof(event));
+                write(keyboard_device, &event, sizeof(event));
                 event.value = 0;
-                write(fkeyboard_device, &event, sizeof(event));
-                send_sync(fkeyboard_device);
+                write(keyboard_device, &event, sizeof(event));
+                send_sync(keyboard_device);
             }
         }
     }
