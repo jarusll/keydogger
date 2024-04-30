@@ -1,4 +1,4 @@
-#include "main.h"
+#include "keydogger.h"
 #include <stdio.h>
 #include <fcntl.h>
 #include <linux/input.h>

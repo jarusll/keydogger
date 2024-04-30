@@ -1,10 +1,10 @@
 KEYBOARD_EVENT_PATH=/dev/input/event2
 
-dev: main.o
-	gcc -g -o expanse main.o
+dev: keydogger.o
+	gcc -g -o expanse keydogger.o
 
-main.o: main.h main.c
-	gcc -DKEYBOARD_EVENT_PATH=\"$(KEYBOARD_EVENT_PATH)\" -g -O0 -c main.c -o main.o -Wall
+keydogger.o: keydogger.h keydogger.c
+	gcc -DKEYBOARD_EVENT_PATH=\"$(KEYBOARD_EVENT_PATH)\" -g -O0 -c keydogger.c -o keydogger.o -Wall
 
 .PHONY: debug
 debug: dev
