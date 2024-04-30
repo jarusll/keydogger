@@ -47,7 +47,7 @@ char get_char_from_keycode(size_t keycode)
     exit(EINVC);
 }
 
-void send_backspace(int *device_fd, size_t n)
+void send_backspace(int device_fd, size_t n)
 {
     struct input_event event;
     event.code = KEY_BACKSPACE;
@@ -61,7 +61,7 @@ void send_backspace(int *device_fd, size_t n)
     }
 }
 
-void send_sync(int *device_fd)
+void send_sync(int device_fd)
 {
     struct input_event event;
     event.type = EV_SYN;
@@ -130,7 +130,7 @@ void push_trie(char *key, char *expansion)
     strcpy(current_trie->expansion, expansion);
 }
 
-void send_to_keyboard(int *keyboard_device, char *string)
+void send_to_keyboard(int keyboard_device, char *string)
 {
     size_t len = strlen(string);
     struct input_event event;

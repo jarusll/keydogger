@@ -118,8 +118,8 @@ struct trie
 
 bool valid_key_code(size_t code);
 char get_char_from_keycode(size_t keycode);
-void send_backspace(int *device_fd, size_t n);
-void send_sync(int *device_fd);
+void send_backspace(int device_fd, size_t n);
+void send_sync(int device_fd);
 void init_trie(struct trie *trie, char character);
 size_t get_position_from_char(char character);
 size_t get_keycode_from_char(char character);
