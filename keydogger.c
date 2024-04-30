@@ -175,18 +175,6 @@ void start_expanse(int *keyboard_device)
                 continue;
             }
             current_trie = TRIE;
-            // printf("Code %d | Char %c\n", event.code, get_char_from_keycode(event.code));
-            // if (event.code == KEY_A)
-            // {
-            //     send_backspace(keyboard_device, 1);
-            //     event.code = KEY_0;
-            //     event.type = EV_KEY;
-            //     event.value = 1;
-            //     write(keyboard_device, &event, sizeof(event));
-            //     event.value = 0;
-            //     write(keyboard_device, &event, sizeof(event));
-            //     send_sync(keyboard_device);
-            // }
         }
     }
 }
