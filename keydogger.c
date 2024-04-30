@@ -8,12 +8,19 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <string.h>
+#include <linux/uinput.h>
 
 // Errors
 #define EOPEN 1  // Cannot open
 #define EREAD 2  // Cannot read
 #define EINVCH 3 // Invalid character
 #define EINVC 4  // Invalid keycode
+#define EINIT 5  // Error initializing
+#define EADD 6   // Error adding
+#define ESETUP 7
+#define ECREATE 7
+
+#define UINPUT_PATH "/dev/uinput"
 
 static char *KEYBOARD_DEVICE = KEYBOARD_EVENT_PATH;
 static struct trie *TRIE = NULL;
@@ -123,11 +130,13 @@ void push_trie(char *key, char *expansion)
     strcpy(current_trie->expansion, expansion);
 }
 
-void send_to_keyboard(int *keyboard_device, char *string){
+void send_to_keyboard(int *keyboard_device, char *string)
+{
     size_t len = strlen(string);
     struct input_event event;
     event.type = EV_KEY;
-    for (size_t i = 0; i < len; i++){
+    for (size_t i = 0; i < len; i++)
+    {
         char character = string[i];
         event.code = get_keycode_from_char(character);
         event.value = 1;
@@ -137,7 +146,7 @@ void send_to_keyboard(int *keyboard_device, char *string){
     }
 }
 
-void start_expanse(int *keyboard_device)
+void start_expanse(int keyboard_device, int vkeyboard_device)
 {
     struct input_event event;
     struct trie *current_trie = TRIE;
@@ -167,9 +176,9 @@ void start_expanse(int *keyboard_device)
                         cursor = cursor->parent;
                     }
                     // printf("Count %d\n", key_char_count);
-                    send_backspace(keyboard_device, key_char_count);
-                    send_to_keyboard(keyboard_device, current_trie->expansion);
-                    send_sync(keyboard_device);
+                    send_backspace(vkeyboard_device, key_char_count);
+                    send_to_keyboard(vkeyboard_device, current_trie->expansion);
+                    send_sync(vkeyboard_device);
                     current_trie = TRIE;
                 }
                 continue;
@@ -179,16 +188,66 @@ void start_expanse(int *keyboard_device)
     }
 }
 
+void init_virtual_device(int vkeyboard_device)
+{
+    struct uinput_setup usetup;
+
+    int status;
+    // setup as keyboard
+    if ((status = ioctl(vkeyboard_device, UI_SET_EVBIT, EV_KEY)) < 0)
+    {
+        fprintf(STDERR_FILENO, "Error initializing virtual input");
+        exit(EINIT);
+    }
+    // setup keys to emit
+    for (size_t i = 0; i < READABLE_KEYS; i++)
+    {
+        if ((status = ioctl(vkeyboard_device, UI_SET_KEYBIT, key_codes[i])) < 0)
+        {
+            fprintf(STDERR_FILENO, "Error adding key to virtual input : %d", key_codes[i]);
+            exit(EADD);
+        }
+    }
+
+    memset(&usetup, 0, sizeof(usetup));
+    usetup.id.bustype = BUS_USB;
+    usetup.id.vendor = 0x7961646176;
+    usetup.id.product = 1999;
+    strcpy(usetup.name, "keydogger");
+
+    if ((status = ioctl(vkeyboard_device, UI_DEV_SETUP, &usetup)) < 0)
+    {
+        fprintf(STDERR_FILENO, "Error setting up virtual device");
+        exit(ESETUP);
+    }
+    if ((status = ioctl(vkeyboard_device, UI_DEV_CREATE)) < 0)
+    {
+        fprintf(STDERR_FILENO, "Error creating up virtual device");
+        exit(ECREATE);
+    }
+    ;
+}
+
 int main()
 {
     int fkeyboard_device = open(KEYBOARD_DEVICE, O_RDWR | O_APPEND, NULL);
+
     if (fkeyboard_device < 0)
     {
         fprintf(STDERR_FILENO, "Error opening %s", KEYBOARD_DEVICE);
         exit(EOPEN);
     }
+    int vkeyboard_device = open(UINPUT_PATH, O_WRONLY);
+    ;
+    if (open < 0)
+    {
+        fprintf(STDERR_FILENO, "Error reading from %s", UINPUT_PATH);
+        exit(EOPEN);
+    }
+
     TRIE = malloc(sizeof(struct trie));
     init_trie(TRIE, NULL);
     push_trie("12", "hello");
-    start_expanse(fkeyboard_device);
+    init_virtual_device(vkeyboard_device);
+    start_expanse(fkeyboard_device, vkeyboard_device);
 }

@@ -106,7 +106,8 @@ static const char *char_matrix[] = {
     ' ',
 };
 
-struct trie {
+struct trie
+{
     char character;
     struct trie *next[READABLE_KEYS];
     size_t keycode;
@@ -123,4 +124,5 @@ void init_trie(struct trie *trie, char character);
 size_t get_position_from_char(char character);
 size_t get_keycode_from_char(char character);
 void push_trie(char *key, char *expansion);
-void start_expanse(int *keyboard_device);
+void start_expanse(int keyboard_device, int vkeyboard_device);
+void init_virtual_device(int vkeyboard_device);
