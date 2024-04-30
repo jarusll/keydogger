@@ -19,6 +19,7 @@
 #define EADD 6   // Error adding
 #define ESETUP 7
 #define ECREATE 7
+#define EWRITE 7
 
 #define UINPUT_PATH "/dev/uinput"
 
@@ -47,6 +48,16 @@ char get_char_from_keycode(size_t keycode)
     exit(EINVC);
 }
 
+void send_key_to_device(int keyboard_device, struct input_event event)
+{
+    int write_status = write(keyboard_device, &event, sizeof(event));
+    if (write_status < 0)
+    {
+        fprintf(STDERR_FILENO, "Error writing to virtual device");
+        exit(EWRITE);
+    }
+}
+
 void send_backspace(int device_fd, size_t n)
 {
     struct input_event event;
@@ -55,9 +66,9 @@ void send_backspace(int device_fd, size_t n)
     for (size_t i = 0; i < n; i++)
     {
         event.value = 1;
-        write(device_fd, &event, sizeof(event));
+        send_key_to_device(device_fd, event);
         event.value = 0;
-        write(device_fd, &event, sizeof(event));
+        send_key_to_device(device_fd, event);
     }
 }
 
@@ -66,7 +77,7 @@ void send_sync(int device_fd)
     struct input_event event;
     event.type = EV_SYN;
     event.value = SYN_REPORT;
-    write(device_fd, &event, sizeof(event));
+    send_key_to_device(device_fd, event);
 }
 
 void init_trie(struct trie *trie, char character)
@@ -140,9 +151,9 @@ void send_to_keyboard(int keyboard_device, char *string)
         char character = string[i];
         event.code = get_keycode_from_char(character);
         event.value = 1;
-        write(keyboard_device, &event, sizeof(struct input_event));
+        send_key_to_device(keyboard_device, event);
         event.value = 0;
-        write(keyboard_device, &event, sizeof(struct input_event));
+        send_key_to_device(keyboard_device, event);
     }
 }
 
@@ -200,6 +211,11 @@ void init_virtual_device(int vkeyboard_device)
         exit(EINIT);
     }
     // setup keys to emit
+    if ((status = ioctl(vkeyboard_device, UI_SET_KEYBIT, KEY_BACKSPACE)) < 0)
+    {
+        fprintf(STDERR_FILENO, "Error adding key to virtual input : %d", KEY_BACKSPACE);
+        exit(EADD);
+    }
     for (size_t i = 0; i < READABLE_KEYS; i++)
     {
         if ((status = ioctl(vkeyboard_device, UI_SET_KEYBIT, key_codes[i])) < 0)
@@ -224,8 +240,7 @@ void init_virtual_device(int vkeyboard_device)
     {
         fprintf(STDERR_FILENO, "Error creating up virtual device");
         exit(ECREATE);
-    }
-    ;
+    };
 }
 
 int main()
