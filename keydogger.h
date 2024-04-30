@@ -2,6 +2,10 @@
 #include <stddef.h>
 #include <stdbool.h>
 
+
+#ifndef KEYDOGGER_H
+#define KEYDOGGER_H
+
 #define READABLE_KEYS 48
 
 static const size_t *key_codes[] = {
@@ -118,6 +122,7 @@ struct trie
 
 bool valid_key_code(size_t code);
 char get_char_from_keycode(size_t keycode);
+// very unusual error, mismatch between def and impl
 // void send_key_to_device(int keyboard_device, struct input_event event);
 void send_backspace(int device_fd, size_t n);
 void send_sync(int device_fd);
@@ -127,3 +132,5 @@ size_t get_keycode_from_char(char character);
 void push_trie(char *key, char *expansion);
 void start_expanse(int keyboard_device, int vkeyboard_device);
 void init_virtual_device(int vkeyboard_device);
+
+#endif
