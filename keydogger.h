@@ -120,6 +120,7 @@ struct trie
     char *expansion;
 };
 
+bool check_priveleges();
 bool valid_key_code(size_t code);
 char get_char_from_keycode(size_t keycode);
 // very unusual error, mismatch between def and impl

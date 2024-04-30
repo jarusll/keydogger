@@ -18,13 +18,40 @@
 #define EINIT 5  // Error initializing
 #define EADD 6   // Error adding
 #define ESETUP 7
-#define ECREATE 7
-#define EWRITE 7
+#define ECREATE 8
+#define EWRITE 9
+#define EENV 10
+#define EPERM 11
 
 #define UINPUT_PATH "/dev/uinput"
 
+extern char **environ;
+
 static char *KEYBOARD_DEVICE = KEYBOARD_EVENT_PATH;
 static struct trie *TRIE = NULL;
+
+bool check_priveleges()
+{
+    if (environ == NULL)
+    {
+        printf("Error accessing ENV variables\n");
+        exit(EENV);
+    }
+    int i = 0;
+    while (environ[i] != NULL)
+    {
+        if (strncmp("USER=ROOT", environ[i], 9) == 0)
+        {
+            return true;
+        }
+        if (strncmp("SUDO_COMMAND", environ[i], 12) == 0)
+        {
+            return true;
+        }
+        i++;
+    }
+    return false;
+}
 
 bool valid_key_code(size_t code)
 {
@@ -53,7 +80,7 @@ void send_key_to_device(int keyboard_device, struct input_event event)
     int write_status = write(keyboard_device, &event, sizeof(event));
     if (write_status < 0)
     {
-        fprintf(STDERR_FILENO, "Error writing to virtual device");
+        printf("Error writing to virtual device\n");
         exit(EWRITE);
     }
 }
@@ -166,7 +193,7 @@ void start_expanse(int keyboard_device, int vkeyboard_device)
         int read_inputs = read(keyboard_device, &event, sizeof(struct input_event));
         if (read_inputs < 0)
         {
-            fprintf(STDERR_FILENO, "Error reading from %s", KEYBOARD_DEVICE);
+            printf("Error reading from %s\n", KEYBOARD_DEVICE);
             exit(EREAD);
         }
         if (event.type == EV_KEY && valid_key_code(event.code) && event.value == 1)
@@ -207,20 +234,20 @@ void init_virtual_device(int vkeyboard_device)
     // setup as keyboard
     if ((status = ioctl(vkeyboard_device, UI_SET_EVBIT, EV_KEY)) < 0)
     {
-        fprintf(STDERR_FILENO, "Error initializing virtual input");
+        printf("Error initializing virtual input\n");
         exit(EINIT);
     }
     // setup keys to emit
     if ((status = ioctl(vkeyboard_device, UI_SET_KEYBIT, KEY_BACKSPACE)) < 0)
     {
-        fprintf(STDERR_FILENO, "Error adding key to virtual input : %d", KEY_BACKSPACE);
+        printf("Error adding key to virtual input : %d\n", KEY_BACKSPACE);
         exit(EADD);
     }
     for (size_t i = 0; i < READABLE_KEYS; i++)
     {
         if ((status = ioctl(vkeyboard_device, UI_SET_KEYBIT, key_codes[i])) < 0)
         {
-            fprintf(STDERR_FILENO, "Error adding key to virtual input : %d", key_codes[i]);
+            printf("Error adding key to virtual input : %d\n", key_codes[i]);
             exit(EADD);
         }
     }
@@ -233,30 +260,35 @@ void init_virtual_device(int vkeyboard_device)
 
     if ((status = ioctl(vkeyboard_device, UI_DEV_SETUP, &usetup)) < 0)
     {
-        fprintf(STDERR_FILENO, "Error setting up virtual device");
+        printf("Error setting up virtual device\n");
         exit(ESETUP);
     }
     if ((status = ioctl(vkeyboard_device, UI_DEV_CREATE)) < 0)
     {
-        fprintf(STDERR_FILENO, "Error creating up virtual device");
+        printf("Error creating up virtual device\n");
         exit(ECREATE);
     };
 }
 
 int main()
 {
+    if (!check_priveleges())
+    {
+        printf("Need sudo priveleges\n");
+        exit(EPERM);
+    }
     int fkeyboard_device = open(KEYBOARD_DEVICE, O_RDWR | O_APPEND, NULL);
 
     if (fkeyboard_device < 0)
     {
-        fprintf(STDERR_FILENO, "Error opening %s", KEYBOARD_DEVICE);
+        printf("Error opening %s\n", KEYBOARD_DEVICE);
         exit(EOPEN);
     }
     int vkeyboard_device = open(UINPUT_PATH, O_WRONLY);
     ;
     if (open < 0)
     {
-        fprintf(STDERR_FILENO, "Error reading from %s", UINPUT_PATH);
+        printf("Error reading from %s\n", UINPUT_PATH);
         exit(EOPEN);
     }
 
