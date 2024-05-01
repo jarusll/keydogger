@@ -31,6 +31,27 @@ extern char **environ;
 static char *KEYBOARD_DEVICE = KEYBOARD_EVENT_PATH;
 static struct trie *TRIE = NULL;
 
+void cleanup_trie(struct trie *trie){
+    if (trie == NULL){
+        return;
+    } else {
+        free(trie->expansion);
+        for (size_t i = 0;i < READABLE_KEYS; i++){
+            cleanup_trie(trie->next[i]);
+        }
+        free(trie);
+    }
+}
+
+void cleanup(struct trie *trie, int *fkeyboard, int *vkeyboard)
+{
+    close(fkeyboard);
+    ioctl(vkeyboard, UI_DEV_DESTROY);
+    close(vkeyboard);
+
+    cleanup_trie(trie);
+}
+
 void read_from_rc()
 {
     FILE *rc_file = fopen(RC_PATH, "r");

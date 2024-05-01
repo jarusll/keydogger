@@ -2,7 +2,6 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-
 #ifndef KEYDOGGER_H
 #define KEYDOGGER_H
 
@@ -120,6 +119,8 @@ struct trie
     char *expansion;
 };
 
+void cleanup_trie(trie);
+void cleanup();
 void read_from_rc();
 bool check_priveleges();
 bool valid_key_code(size_t code);
