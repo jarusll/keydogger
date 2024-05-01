@@ -223,7 +223,6 @@ void start_expanse(int keyboard_device, int vkeyboard_device)
                 current_trie = current_trie->next[position];
                 if (current_trie->is_leaf)
                 {
-                    // printf("Expansion %s\n", current_trie->expansion);
                     size_t key_char_count = 0;
                     struct trie *cursor = current_trie;
                     while (cursor->character != NULL)
@@ -231,7 +230,6 @@ void start_expanse(int keyboard_device, int vkeyboard_device)
                         key_char_count++;
                         cursor = cursor->parent;
                     }
-                    // printf("Count %d\n", key_char_count);
                     send_backspace(vkeyboard_device, key_char_count);
                     send_to_keyboard(vkeyboard_device, current_trie->expansion);
                     send_sync(vkeyboard_device);
@@ -314,7 +312,6 @@ int main()
     init_trie(TRIE, NULL);
     init_virtual_device(vkeyboard_device);
     read_from_rc();
-    // push_trie("1234", "12llo");
 
     start_expanse(fkeyboard_device, vkeyboard_device);
 }
