@@ -1,6 +1,6 @@
-#include "keydogger.h"
 #include <stdio.h>
 #include <fcntl.h>
+#include <linux/uinput.h>
 #include <linux/input.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -8,7 +8,11 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <string.h>
-#include <linux/uinput.h>
+#include <signal.h>
+#include <bits/sigaction.h>
+#include <sys/prctl.h>
+
+#include "keydogger.h"
 
 // Errors
 #define EOPEN 1  // Cannot open
@@ -22,9 +26,14 @@
 #define EWRITE 9
 #define EENV 10
 #define EPERM 11
+#define EFORK 12
+#define ELEAD 13
+#define ECHDIR 14
+#define ERENAM 15
 
-#define RC_PATH "./keydoggerrc"
+#define RC_PATH "/home/jarusll/source/expanse/keydoggerrc"
 #define UINPUT_PATH "/dev/uinput"
+#define PID_PATH "/run/keyloggerd.pid"
 
 extern char **environ;
 
@@ -32,12 +41,17 @@ static char *KEYBOARD_DEVICE = KEYBOARD_EVENT_PATH;
 static char *DAEMON = DAEMON_NAME;
 static struct trie *TRIE = NULL;
 
-void cleanup_trie(struct trie *trie){
-    if (trie == NULL){
+void cleanup_trie(struct trie *trie)
+{
+    if (trie == NULL)
+    {
         return;
-    } else {
+    }
+    else
+    {
         free(trie->expansion);
-        for (size_t i = 0;i < READABLE_KEYS; i++){
+        for (size_t i = 0; i < READABLE_KEYS; i++)
+        {
             cleanup_trie(trie->next[i]);
         }
         free(trie);
@@ -224,6 +238,77 @@ void send_to_keyboard(int keyboard_device, char *string)
     }
 }
 
+void daemonize_keyloggerd()
+{
+    int fd;
+    pid_t pid;
+    pid_t sid;
+    sigset_t sigset;
+    for (fd = sysconf(_SC_OPEN_MAX); fd >= 0; fd--)
+        close(fd);
+
+    for (int i = 1; i < _NSIG; i++)
+    {
+        if (i != SIGKILL && i != SIGSTOP)
+            signal(i, SIG_DFL);
+    }
+
+    sigemptyset(&sigset);
+    sigprocmask(SIG_SETMASK, &sigset, NULL);
+
+    if ((pid = fork()) < 0)
+    {
+        printf("Error forking 1");
+        exit(EFORK);
+    }
+    // exit Parent
+    if (pid > 0)
+    {
+        exit(EXIT_SUCCESS);
+    }
+
+    if ((sid = setsid()) < 0)
+    {
+        printf("Error upgrading to session leader");
+        exit(ELEAD);
+    }
+
+    if ((pid = fork()) < 0)
+    {
+        printf("Error forking 2");
+        exit(EFORK);
+    }
+    // exit Child1
+    if (pid > 0)
+    {
+        exit(EXIT_SUCCESS);
+    }
+
+    if (prctl(PR_SET_NAME, DAEMON) < 0){
+        printf("Error setting name for process");
+        exit(ERENAM);
+    }
+
+    fd = open("/dev/null", O_RDWR);
+    if (fd < 0)
+    {
+        printf("Error opening %s\n", "/dev/null");
+        exit(EOPEN);
+    }
+    dup2(fd, STDIN_FILENO);
+    dup2(fd, STDOUT_FILENO);
+    dup2(fd, STDERR_FILENO);
+
+    mode_t new_mask = umask(0);
+
+    if (chdir("/") < 0){
+        printf("Error changing directory to /");
+        exit(ECHDIR);
+    }
+
+    keylogger_daemon();
+}
+
 void keylogger_daemon()
 {
     int fkeyboard_device = open(KEYBOARD_DEVICE, O_RDWR | O_APPEND, NULL);
@@ -249,7 +334,7 @@ void keylogger_daemon()
     struct trie *current_trie = TRIE;
     while (1)
     {
-        int read_inputs = read(keyboard_device, &event, sizeof(struct input_event));
+        int read_inputs = read(fkeyboard_device, &event, sizeof(struct input_event));
         if (read_inputs < 0)
         {
             printf("Error reading from %s\n", KEYBOARD_DEVICE);
@@ -335,5 +420,5 @@ int main(int argc, char *argv[])
         exit(EPERM);
     }
 
-    keylogger_daemon();
+    daemonize_keyloggerd();
 }
