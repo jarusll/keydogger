@@ -292,10 +292,10 @@ void daemonize_keydoggerd()
         exit(ERENAM);
     }
 
-    fd = open("/dev/null", O_RDWR);
+    fd = open("/var/log/keydogger.log", O_RDWR | O_CREAT | O_APPEND);
     if (fd < 0)
     {
-        printf("Error opening %s\n", "/dev/null");
+        printf("Error opening %s\n", "/var/log/keydogger.log");
         exit(EOPEN);
     }
     dup2(fd, STDIN_FILENO);
