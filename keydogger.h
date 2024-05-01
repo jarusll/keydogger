@@ -125,7 +125,7 @@ bool check_priveleges();
 bool valid_key_code(size_t code);
 char get_char_from_keycode(size_t keycode);
 // very unusual error, mismatch between def and impl
-// void send_key_to_device(int keyboard_device, struct input_event event);
+// inline void send_key_to_device(int keyboard_device, struct input_event event);
 void send_backspace(int device_fd, size_t n);
 void send_sync(int device_fd);
 void init_trie(struct trie *trie, char character);
