@@ -29,6 +29,7 @@
 extern char **environ;
 
 static char *KEYBOARD_DEVICE = KEYBOARD_EVENT_PATH;
+static char *DAEMON = DAEMON_NAME;
 static struct trie *TRIE = NULL;
 
 void cleanup_trie(struct trie *trie){
@@ -223,7 +224,7 @@ void send_to_keyboard(int keyboard_device, char *string)
     }
 }
 
-void start_expanse(int keyboard_device, int vkeyboard_device)
+void keylogger_daemon(int keyboard_device, int vkeyboard_device)
 {
     struct input_event event;
     struct trie *current_trie = TRIE;
@@ -307,7 +308,7 @@ void init_virtual_device(int vkeyboard_device)
     };
 }
 
-int main()
+int main(int argc, char *argv[])
 {
     if (!check_priveleges())
     {
@@ -334,5 +335,5 @@ int main()
     init_virtual_device(vkeyboard_device);
     read_from_rc();
 
-    start_expanse(fkeyboard_device, vkeyboard_device);
+    keylogger_daemon(fkeyboard_device, vkeyboard_device);
 }
