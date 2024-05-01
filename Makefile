@@ -1,5 +1,5 @@
 KEYBOARD_EVENT_PATH=/dev/input/event2
-DAEMON_NAME=keyloggerd
+DAEMON_NAME=keydoggerd
 
 dev: keydogger.o
 	gcc -g -o keydoggerd keydogger.o

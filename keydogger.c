@@ -33,7 +33,7 @@
 
 #define RC_PATH "./keydoggerrc"
 #define UINPUT_PATH "/dev/uinput"
-#define PID_PATH "/run/keyloggerd.pid"
+#define PID_PATH "/run/keydoggerd.pid"
 
 extern char **environ;
 
@@ -238,7 +238,7 @@ void send_to_keyboard(int keyboard_device, char *string)
     }
 }
 
-void daemonize_keyloggerd()
+void daemonize_keydoggerd()
 {
     int fd;
     pid_t pid;
@@ -308,10 +308,10 @@ void daemonize_keyloggerd()
         exit(ECHDIR);
     }
 
-    keylogger_daemon();
+    keydogger_daemon();
 }
 
-void keylogger_daemon()
+void keydogger_daemon()
 {
     int fkeyboard_device = open(KEYBOARD_DEVICE, O_RDWR | O_APPEND, NULL);
 
@@ -422,5 +422,5 @@ int main(int argc, char *argv[])
     TRIE = malloc(sizeof(struct trie));
     init_trie(TRIE, NULL);
     read_from_rc();
-    daemonize_keyloggerd();
+    daemonize_keydoggerd();
 }
