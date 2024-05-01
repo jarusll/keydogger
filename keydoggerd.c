@@ -12,7 +12,7 @@
 #include <bits/sigaction.h>
 #include <sys/prctl.h>
 
-#include "keydogger.h"
+#include "keydoggerd.h"
 
 // Errors
 #define EOPEN 1  // Cannot open
@@ -31,7 +31,7 @@
 #define ECHDIR 14
 #define ERENAM 15
 
-#define RC_PATH "./keydoggerrc"
+#define RC_PATH "~/keydoggerrc"
 #define UINPUT_PATH "/dev/uinput"
 #define PID_PATH "/run/keydoggerd.pid"
 
@@ -69,6 +69,8 @@ void cleanup(struct trie *trie, int *fkeyboard, int *vkeyboard)
 
 void read_from_rc()
 {
+    TRIE = malloc(sizeof(struct trie));
+    init_trie(TRIE, NULL);
     FILE *rc_file = fopen(RC_PATH, "r");
     if (rc_file == NULL)
     {
@@ -419,8 +421,6 @@ int main(int argc, char *argv[])
         exit(EPERM);
     }
 
-    TRIE = malloc(sizeof(struct trie));
-    init_trie(TRIE, NULL);
     read_from_rc();
     daemonize_keydoggerd();
 }

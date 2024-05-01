@@ -2,5 +2,6 @@ expanse
 keydogger
 keydoggerd
 keydogger.o
+*.o
 settings.json
 vgcore*
