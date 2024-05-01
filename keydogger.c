@@ -224,8 +224,27 @@ void send_to_keyboard(int keyboard_device, char *string)
     }
 }
 
-void keylogger_daemon(int keyboard_device, int vkeyboard_device)
+void keylogger_daemon()
 {
+    int fkeyboard_device = open(KEYBOARD_DEVICE, O_RDWR | O_APPEND, NULL);
+
+    if (fkeyboard_device < 0)
+    {
+        printf("Error opening %s\n", KEYBOARD_DEVICE);
+        exit(EOPEN);
+    }
+    int vkeyboard_device = open(UINPUT_PATH, O_WRONLY);
+    ;
+    if (open < 0)
+    {
+        printf("Error reading from %s\n", UINPUT_PATH);
+        exit(EOPEN);
+    }
+
+    TRIE = malloc(sizeof(struct trie));
+    init_trie(TRIE, NULL);
+    init_virtual_device(vkeyboard_device);
+    read_from_rc();
     struct input_event event;
     struct trie *current_trie = TRIE;
     while (1)
@@ -315,25 +334,6 @@ int main(int argc, char *argv[])
         printf("Need sudo priveleges\n");
         exit(EPERM);
     }
-    int fkeyboard_device = open(KEYBOARD_DEVICE, O_RDWR | O_APPEND, NULL);
 
-    if (fkeyboard_device < 0)
-    {
-        printf("Error opening %s\n", KEYBOARD_DEVICE);
-        exit(EOPEN);
-    }
-    int vkeyboard_device = open(UINPUT_PATH, O_WRONLY);
-    ;
-    if (open < 0)
-    {
-        printf("Error reading from %s\n", UINPUT_PATH);
-        exit(EOPEN);
-    }
-
-    TRIE = malloc(sizeof(struct trie));
-    init_trie(TRIE, NULL);
-    init_virtual_device(vkeyboard_device);
-    read_from_rc();
-
-    keylogger_daemon(fkeyboard_device, vkeyboard_device);
+    keylogger_daemon();
 }

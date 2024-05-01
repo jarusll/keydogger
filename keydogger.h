@@ -133,7 +133,7 @@ void init_trie(struct trie *trie, char character);
 size_t get_position_from_char(char character);
 size_t get_keycode_from_char(char character);
 void push_trie(char *key, char *expansion);
-void keylogger_daemon(int fkeyboard_device, int vkeyboard_device);
+void keylogger_daemon();
 void init_virtual_device(int vkeyboard_device);
 
 #endif
