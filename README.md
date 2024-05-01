@@ -2,6 +2,11 @@
 A zero dependency keyboard macro processor for Linux.
 
 # Installation
+```
+git clone https://github.com/jarusll/keydogger.git
+cd keydogger
+```
+
 Configure macro values in `Makefile`
 - Can use `evtest` to find out keyboard input device
 ```
