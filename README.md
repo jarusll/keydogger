@@ -1,4 +1,4 @@
-# Keydoggerd
+# Keydogger
 A zero dependency keyboard macro processor for Linux.
 
 # Installation

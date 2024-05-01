@@ -12,8 +12,7 @@
 #include <bits/sigaction.h>
 #include <sys/prctl.h>
 
-#include "keydoggerd.h"
-
+#include "keydogger.h"
 
 // Errors
 #define EOPEN 1  // Cannot open
@@ -34,10 +33,11 @@
 #define EPGREP 16
 #define ECMD 17
 #define EPIPE 18
+#define EUSAGE 19
 
-#define RC_PATH "~/keydoggerrc"
+#define RC_PATH "./keydoggerrc"
 #define UINPUT_PATH "/dev/uinput"
-#define PID_PATH "/run/keydoggerd.pid"
+#define PID_PATH "/run/keydogger.pid"
 
 extern char **environ;
 
@@ -244,7 +244,7 @@ void send_to_keyboard(int keyboard_device, char *string)
     }
 }
 
-void daemonize_keydoggerd()
+void daemonize_keydogger()
 {
     int fd;
     pid_t pid;
@@ -264,7 +264,7 @@ void daemonize_keydoggerd()
 
     if ((pid = fork()) < 0)
     {
-        printf("Error forking 1");
+        printf("Error forking 1\n");
         exit(EFORK);
     }
     // exit Parent
@@ -275,13 +275,13 @@ void daemonize_keydoggerd()
 
     if ((sid = setsid()) < 0)
     {
-        printf("Error upgrading to session leader");
+        printf("Error upgrading to session leader\n");
         exit(ELEAD);
     }
 
     if ((pid = fork()) < 0)
     {
-        printf("Error forking 2");
+        printf("Error forking 2\n");
         exit(EFORK);
     }
     // exit Child1
@@ -292,7 +292,7 @@ void daemonize_keydoggerd()
 
     if (prctl(PR_SET_NAME, DAEMON) < 0)
     {
-        printf("Error setting name for process");
+        printf("Error setting name for process\n");
         exit(ERENAM);
     }
 
@@ -308,28 +308,28 @@ void daemonize_keydoggerd()
 
     mode_t new_mask = umask(0);
 
-    if (chdir("/") < 0)
-    {
-        printf("Error changing directory to /");
-        exit(ECHDIR);
-    }
+    // if (chdir("/") < 0)
+    // {
+    //     printf("Error changing directory to /");
+    //     exit(ECHDIR);
+    // }
 
     keydogger_daemon();
 }
 
-bool is_running()
+int is_running()
 {
     char *command[50];
     int items_read = snprintf(command, 50, "pgrep -x %s", DAEMON);
     pid_t pid;
     if (items_read < 0)
     {
-        printf("Could not retrive process");
+        printf("Could not retrive process\n");
         exit(EPGREP);
     }
     if (items_read > 50)
     {
-        printf("Command size too long");
+        printf("Command size too long\n");
         exit(ECMD);
     }
     FILE *pgrep;
@@ -340,10 +340,11 @@ bool is_running()
     }
     items_read = fscanf(pgrep, "%d", &pid);
     pclose(pgrep);
-    if (items_read != EOF){
-        return false;
+    if (items_read != EOF && pid > 0)
+    {
+        return pid;
     }
-    return true;
+    return -1;
 }
 
 void keydogger_daemon()
@@ -448,12 +449,62 @@ void init_virtual_device(int vkeyboard_device)
 
 int main(int argc, char *argv[])
 {
+    if (argc < 2)
+    {
+        printf("Usage error: keyloggerd start | stop | status\n");
+        exit(EUSAGE);
+    }
+
     if (!check_priveleges())
     {
         printf("Need sudo priveleges\n");
         exit(EPERM);
     }
 
-    read_from_rc();
-    daemonize_keydoggerd();
+    pid_t pid;
+    pid = is_running();
+    if (strcmp(argv[1], "start") == 0)
+    {
+        if (pid > 0)
+        {
+            printf("Already running at pid %d\n", &pid);
+        }
+        else
+        {
+            read_from_rc();
+            daemonize_keydogger();
+        }
+    }
+    else if (strcmp(argv[1], "status") == 0)
+    {
+        if (pid > 0)
+        {
+            printf("keydogger running at pid %d\n", &pid);
+        }
+        else
+        {
+            printf("Not running\n");
+        }
+    }
+
+    else if (strcmp(argv[1], "stop") == 0)
+    {
+        if (pid > 0)
+        {
+            int kill_status = kill(pid, SIGTERM);
+            if (kill_status < 0)
+            {
+                kill(pid, SIGKILL);
+            }
+        }
+        else
+        {
+            printf("Not running\n");
+        }
+    }
+    else
+    {
+        printf("Usage error: keyloggerd start | stop | status\n");
+        exit(EUSAGE);
+    }
 }

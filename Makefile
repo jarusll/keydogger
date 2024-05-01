@@ -3,25 +3,25 @@ KEYBOARD_EVENT_PATH=/dev/input/event2
 DAEMON_NAME=keydoggerd
 PREFIX=/usr/local/
 
-dev: keydoggerd.o
-	gcc -g -o keydoggerd keydoggerd.o
+dev: keydogger.o
+	gcc -g -o keydogger keydogger.o
 
-build: keydoggerd.h keydoggerd.c
-	gcc -DKEYBOARD_EVENT_PATH=\"$(KEYBOARD_EVENT_PATH)\" -DDAEMON_NAME=\"$(DAEMON_NAME)\" -w keydoggerd.c -o keydoggerd
-	mv keydoggerd $(PREFIX)
+build: keydogger.h keydogger.c
+	gcc -DKEYBOARD_EVENT_PATH=\"$(KEYBOARD_EVENT_PATH)\" -DDAEMON_NAME=\"$(DAEMON_NAME)\" -w keydogger.c -o keydogger
+	mv keydogger $(PREFIX)
 
-keydoggerd.o: keydoggerd.h keydoggerd.c
-	gcc -DKEYBOARD_EVENT_PATH=\"$(KEYBOARD_EVENT_PATH)\" -DDAEMON_NAME=\"$(DAEMON_NAME)\" -g -O0 -c keydoggerd.c -o keydoggerd.o -Wall
+keydogger.o: keydogger.h keydogger.c
+	gcc -DKEYBOARD_EVENT_PATH=\"$(KEYBOARD_EVENT_PATH)\" -DDAEMON_NAME=\"$(DAEMON_NAME)\" -g -O0 -c keydogger.c -o keydogger.o -Wall
 
 .PHONY: debug
 debug: dev
-	sudo gdb keydoggerd
+	sudo gdb keydogger
 
 .PHONY: memcheck
 memcheck: dev
-	sudo valgrind --tool=memcheck ./keydoggerd
+	sudo valgrind --tool=memcheck ./keydogger
 
 .PHONY: clean
 clean:
 	-rm *.o
-	-rm keydoggerd
+	-rm keydogger
