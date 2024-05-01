@@ -14,6 +14,7 @@
 
 #include "keydoggerd.h"
 
+
 // Errors
 #define EOPEN 1  // Cannot open
 #define EREAD 2  // Cannot read
@@ -30,6 +31,9 @@
 #define ELEAD 13
 #define ECHDIR 14
 #define ERENAM 15
+#define EPGREP 16
+#define ECMD 17
+#define EPIPE 18
 
 #define RC_PATH "~/keydoggerrc"
 #define UINPUT_PATH "/dev/uinput"
@@ -311,6 +315,35 @@ void daemonize_keydoggerd()
     }
 
     keydogger_daemon();
+}
+
+bool is_running()
+{
+    char *command[50];
+    int items_read = snprintf(command, 50, "pgrep -x %s", DAEMON);
+    pid_t pid;
+    if (items_read < 0)
+    {
+        printf("Could not retrive process");
+        exit(EPGREP);
+    }
+    if (items_read > 50)
+    {
+        printf("Command size too long");
+        exit(ECMD);
+    }
+    FILE *pgrep;
+    if ((pgrep = popen(command, "r")) == NULL)
+    {
+        printf("Unable to check if \"%s\" daemon is running or not.\n", DAEMON);
+        exit(EPIPE);
+    }
+    items_read = fscanf(pgrep, "%d", &pid);
+    pclose(pgrep);
+    if (items_read != EOF){
+        return false;
+    }
+    return true;
 }
 
 void keydogger_daemon()
