@@ -214,7 +214,7 @@ void start_expanse(int keyboard_device, int vkeyboard_device)
             printf("Error reading from %s\n", KEYBOARD_DEVICE);
             exit(EREAD);
         }
-        if (event.type == EV_KEY && valid_key_code(event.code) && event.value == 1)
+        if (event.type == EV_KEY && valid_key_code(event.code) && event.value == 0)
         {
             char character = get_char_from_keycode(event.code);
             size_t position = get_position_from_char(character);
