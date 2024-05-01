@@ -31,7 +31,7 @@
 #define ECHDIR 14
 #define ERENAM 15
 
-#define RC_PATH "/home/jarusll/source/expanse/keydoggerrc"
+#define RC_PATH "./keydoggerrc"
 #define UINPUT_PATH "/dev/uinput"
 #define PID_PATH "/run/keyloggerd.pid"
 
@@ -70,7 +70,7 @@ void cleanup(struct trie *trie, int *fkeyboard, int *vkeyboard)
 void read_from_rc()
 {
     FILE *rc_file = fopen(RC_PATH, "r");
-    if (rc_file < 0)
+    if (rc_file == NULL)
     {
         printf("Error opening %s\n", RC_PATH);
         exit(EOPEN);
@@ -284,7 +284,8 @@ void daemonize_keyloggerd()
         exit(EXIT_SUCCESS);
     }
 
-    if (prctl(PR_SET_NAME, DAEMON) < 0){
+    if (prctl(PR_SET_NAME, DAEMON) < 0)
+    {
         printf("Error setting name for process");
         exit(ERENAM);
     }
@@ -301,7 +302,8 @@ void daemonize_keyloggerd()
 
     mode_t new_mask = umask(0);
 
-    if (chdir("/") < 0){
+    if (chdir("/") < 0)
+    {
         printf("Error changing directory to /");
         exit(ECHDIR);
     }
@@ -326,10 +328,7 @@ void keylogger_daemon()
         exit(EOPEN);
     }
 
-    TRIE = malloc(sizeof(struct trie));
-    init_trie(TRIE, NULL);
     init_virtual_device(vkeyboard_device);
-    read_from_rc();
     struct input_event event;
     struct trie *current_trie = TRIE;
     while (1)
@@ -420,5 +419,8 @@ int main(int argc, char *argv[])
         exit(EPERM);
     }
 
+    TRIE = malloc(sizeof(struct trie));
+    init_trie(TRIE, NULL);
+    read_from_rc();
     daemonize_keyloggerd();
 }
