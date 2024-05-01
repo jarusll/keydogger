@@ -3,6 +3,7 @@ A zero dependency keyboard macro processor for Linux.
 
 # Installation
 Configure macro values in `Makefile`
+- Can use `evtest` to find out keyboard input device
 ```
 make clean build
 ```
@@ -11,7 +12,6 @@ make clean build
 Set trigger and expansion values in `~/keydoggerrc`
 ```
 hello=world
-...
 ```
 
 # TODO
