@@ -23,12 +23,30 @@
 #define EENV 10
 #define EPERM 11
 
+#define RC_PATH "./keydoggerrc"
 #define UINPUT_PATH "/dev/uinput"
 
 extern char **environ;
 
 static char *KEYBOARD_DEVICE = KEYBOARD_EVENT_PATH;
 static struct trie *TRIE = NULL;
+
+void read_from_rc()
+{
+    FILE *rc_file = fopen(RC_PATH, "r");
+    if (rc_file < 0)
+    {
+        printf("Error opening %s\n", RC_PATH);
+        exit(EOPEN);
+    }
+    char *key[10], *value[100];
+    while (fscanf(rc_file, "%99[^=]=%99[^\n]\n", key, value) == 2)
+    {
+        printf("%s %s\n", key, value);
+        push_trie(key, value);
+    }
+    fclose(rc_file);
+}
 
 bool check_priveleges()
 {
@@ -294,7 +312,9 @@ int main()
 
     TRIE = malloc(sizeof(struct trie));
     init_trie(TRIE, NULL);
-    push_trie("12", "hello");
     init_virtual_device(vkeyboard_device);
+    read_from_rc();
+    // push_trie("1234", "12llo");
+
     start_expanse(fkeyboard_device, vkeyboard_device);
 }
