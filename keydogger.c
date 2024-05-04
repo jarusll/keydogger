@@ -140,7 +140,7 @@ char get_char_from_keycode(size_t keycode)
     {
         if (key_codes[i] == keycode)
         {
-            return char_matrix[i];
+            return char_codes[i];
         }
     }
     exit(EINVC);
@@ -199,7 +199,7 @@ size_t get_position_from_char(char character)
 {
     for (size_t i = 0; i < READABLE_KEYS; i++)
     {
-        if (character == char_matrix[i])
+        if (character == char_codes[i])
         {
             return i;
         }
@@ -211,7 +211,7 @@ size_t get_keycode_from_char(char character)
 {
     for (size_t i = 0; i < READABLE_KEYS; i++)
     {
-        if (character == char_matrix[i])
+        if (character == char_codes[i])
         {
             return key_codes[i];
         }

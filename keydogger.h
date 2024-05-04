@@ -58,7 +58,7 @@ static const size_t *key_codes[] = {
     KEY_SPACE,
 };
 
-static const char *char_matrix[] = {
+static const char *char_codes[] = {
     '1',
     '2',
     '3',
