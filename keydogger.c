@@ -89,29 +89,6 @@ void read_from_rc()
     fclose(rc_file);
 }
 
-bool check_priveleges()
-{
-    if (environ == NULL)
-    {
-        printf("Error accessing ENV variables\n");
-        exit(EENV);
-    }
-    int i = 0;
-    while (environ[i] != NULL)
-    {
-        if (strncmp("USER=ROOT", environ[i], 9) == 0)
-        {
-            return true;
-        }
-        if (strncmp("SUDO_COMMAND", environ[i], 12) == 0)
-        {
-            return true;
-        }
-        i++;
-    }
-    return false;
-}
-
 bool valid_key_code(size_t code)
 {
     for (size_t i = 0; i < READABLE_KEYS; i++)
@@ -120,6 +97,30 @@ bool valid_key_code(size_t code)
             return true;
     }
     return false;
+}
+
+struct key get_key_from_char(char character)
+{
+    struct key key;
+    key.character = character;
+    for (size_t i = 0; i < READABLE_KEYS; i++)
+    {
+        if (character == char_codes[i])
+        {
+            key.keycode = key_codes[i];
+            key.is_shifted = false;
+            key.position = i;
+            return key;
+        }
+        if (character == shifted_char_codes[i])
+        {
+            key.keycode = key_codes[i];
+            key.is_shifted = true;
+            key.position = i;
+            return key;
+        }
+    }
+    exit(EINVCH);
 }
 
 char get_char_from_keycode(size_t keycode, bool is_shifted)
@@ -170,6 +171,23 @@ void send_sync(int device_fd)
     send_key_to_device(device_fd, event);
 }
 
+void send_to_keyboard(int keyboard_device, char *string)
+{
+    size_t len = strlen(string);
+    struct input_event event;
+    event.type = EV_KEY;
+    for (size_t i = 0; i < len; i++)
+    {
+        char character = string[i];
+        struct key key = get_key_from_char(character);
+        event.code = key.keycode;
+        event.value = 1;
+        send_key_to_device(keyboard_device, event);
+        event.value = 0;
+        send_key_to_device(keyboard_device, event);
+    }
+}
+
 void init_trie(struct trie *trie, struct key *key)
 {
     trie->character = '\0';
@@ -187,30 +205,6 @@ void init_trie(struct trie *trie, struct key *key)
     {
         trie->next[i] = NULL;
     }
-}
-
-struct key get_key_from_char(char character)
-{
-    struct key key;
-    key.character = character;
-    for (size_t i = 0; i < READABLE_KEYS; i++)
-    {
-        if (character == char_codes[i])
-        {
-            key.keycode = key_codes[i];
-            key.is_shifted = false;
-            key.position = i;
-            return key;
-        }
-        if (character == shifted_char_codes[i])
-        {
-            key.keycode = key_codes[i];
-            key.is_shifted = true;
-            key.position = i;
-            return key;
-        }
-    }
-    exit(EINVCH);
 }
 
 void push_trie(char *key, char *expansion)
@@ -234,124 +228,48 @@ void push_trie(char *key, char *expansion)
     strcpy(current_trie->expansion, expansion);
 }
 
-void send_to_keyboard(int keyboard_device, char *string)
+void init_virtual_device(int vkeyboard_device)
 {
-    size_t len = strlen(string);
-    struct input_event event;
-    event.type = EV_KEY;
-    for (size_t i = 0; i < len; i++)
+    struct uinput_setup usetup;
+
+    int status;
+    // setup as keyboard
+    if ((status = ioctl(vkeyboard_device, UI_SET_EVBIT, EV_KEY)) < 0)
     {
-        char character = string[i];
-        struct key key = get_key_from_char(character);
-        event.code = key.keycode;
-        event.value = 1;
-        send_key_to_device(keyboard_device, event);
-        event.value = 0;
-        send_key_to_device(keyboard_device, event);
+        printf("Error initializing virtual input\n");
+        exit(EINIT);
     }
-}
-
-void daemonize_keydogger()
-{
-    int fd;
-    pid_t pid;
-    pid_t sid;
-    sigset_t sigset;
-    for (fd = sysconf(_SC_OPEN_MAX); fd >= 0; fd--)
-        close(fd);
-
-    for (int i = 1; i < _NSIG; i++)
+    // setup keys to emit
+    if ((status = ioctl(vkeyboard_device, UI_SET_KEYBIT, KEY_BACKSPACE)) < 0)
     {
-        if (i != SIGKILL && i != SIGSTOP)
-            signal(i, SIG_DFL);
+        printf("Error adding key to virtual input : %d\n", KEY_BACKSPACE);
+        exit(EADD);
+    }
+    for (size_t i = 0; i < READABLE_KEYS; i++)
+    {
+        if ((status = ioctl(vkeyboard_device, UI_SET_KEYBIT, key_codes[i])) < 0)
+        {
+            printf("Error adding key to virtual input : %d\n", key_codes[i]);
+            exit(EADD);
+        }
     }
 
-    sigemptyset(&sigset);
-    sigprocmask(SIG_SETMASK, &sigset, NULL);
+    memset(&usetup, 0, sizeof(usetup));
+    usetup.id.bustype = BUS_USB;
+    usetup.id.vendor = 0x7961646176;
+    usetup.id.product = 1999;
+    strcpy(usetup.name, "keydogger");
 
-    if ((pid = fork()) < 0)
+    if ((status = ioctl(vkeyboard_device, UI_DEV_SETUP, &usetup)) < 0)
     {
-        printf("Error forking 1\n");
-        exit(EFORK);
+        printf("Error setting up virtual device\n");
+        exit(ESETUP);
     }
-    // exit Parent
-    if (pid > 0)
+    if ((status = ioctl(vkeyboard_device, UI_DEV_CREATE)) < 0)
     {
-        exit(EXIT_SUCCESS);
-    }
-
-    if ((sid = setsid()) < 0)
-    {
-        printf("Error upgrading to session leader\n");
-        exit(ELEAD);
-    }
-
-    if ((pid = fork()) < 0)
-    {
-        printf("Error forking 2\n");
-        exit(EFORK);
-    }
-    // exit Child1
-    if (pid > 0)
-    {
-        exit(EXIT_SUCCESS);
-    }
-
-    if (prctl(PR_SET_NAME, DAEMON) < 0)
-    {
-        printf("Error setting name for process\n");
-        exit(ERENAM);
-    }
-
-    fd = open("/var/log/keydogger.log", O_RDWR | O_CREAT | O_APPEND);
-    if (fd < 0)
-    {
-        printf("Error opening %s\n", "/var/log/keydogger.log");
-        exit(EOPEN);
-    }
-    dup2(fd, STDIN_FILENO);
-    dup2(fd, STDOUT_FILENO);
-    dup2(fd, STDERR_FILENO);
-
-    mode_t new_mask = umask(0);
-
-    if (chdir("/") < 0)
-    {
-        printf("Error changing directory to /");
-        exit(ECHDIR);
-    }
-
-    keydogger_daemon();
-}
-
-int is_running()
-{
-    char *command[50];
-    int items_read = snprintf(command, 50, "pgrep -x %s", DAEMON);
-    pid_t pid;
-    if (items_read < 0)
-    {
-        printf("Could not retrive process\n");
-        exit(EPGREP);
-    }
-    if (items_read > 50)
-    {
-        printf("Command size too long\n");
-        exit(ECMD);
-    }
-    FILE *pgrep;
-    if ((pgrep = popen(command, "r")) == NULL)
-    {
-        printf("Unable to check if \"%s\" daemon is running or not.\n", DAEMON);
-        exit(EPIPE);
-    }
-    items_read = fscanf(pgrep, "%d", &pid);
-    pclose(pgrep);
-    if (items_read != EOF && pid > 0)
-    {
-        return pid;
-    }
-    return -1;
+        printf("Error creating up virtual device\n");
+        exit(ECREATE);
+    };
 }
 
 void keydogger_daemon()
@@ -444,48 +362,130 @@ void keydogger_daemon()
     }
 }
 
-void init_virtual_device(int vkeyboard_device)
+void daemonize_keydogger()
 {
-    struct uinput_setup usetup;
+    int fd;
+    pid_t pid;
+    pid_t sid;
+    sigset_t sigset;
+    for (fd = sysconf(_SC_OPEN_MAX); fd >= 0; fd--)
+        close(fd);
 
-    int status;
-    // setup as keyboard
-    if ((status = ioctl(vkeyboard_device, UI_SET_EVBIT, EV_KEY)) < 0)
+    for (int i = 1; i < _NSIG; i++)
     {
-        printf("Error initializing virtual input\n");
-        exit(EINIT);
+        if (i != SIGKILL && i != SIGSTOP)
+            signal(i, SIG_DFL);
     }
-    // setup keys to emit
-    if ((status = ioctl(vkeyboard_device, UI_SET_KEYBIT, KEY_BACKSPACE)) < 0)
+
+    sigemptyset(&sigset);
+    sigprocmask(SIG_SETMASK, &sigset, NULL);
+
+    if ((pid = fork()) < 0)
     {
-        printf("Error adding key to virtual input : %d\n", KEY_BACKSPACE);
-        exit(EADD);
+        printf("Error forking 1\n");
+        exit(EFORK);
     }
-    for (size_t i = 0; i < READABLE_KEYS; i++)
+    // exit Parent
+    if (pid > 0)
     {
-        if ((status = ioctl(vkeyboard_device, UI_SET_KEYBIT, key_codes[i])) < 0)
+        exit(EXIT_SUCCESS);
+    }
+
+    if ((sid = setsid()) < 0)
+    {
+        printf("Error upgrading to session leader\n");
+        exit(ELEAD);
+    }
+
+    if ((pid = fork()) < 0)
+    {
+        printf("Error forking 2\n");
+        exit(EFORK);
+    }
+    // exit Child1
+    if (pid > 0)
+    {
+        exit(EXIT_SUCCESS);
+    }
+
+    if (prctl(PR_SET_NAME, DAEMON) < 0)
+    {
+        printf("Error setting name for process\n");
+        exit(ERENAM);
+    }
+
+    fd = open("/var/log/keydogger.log", O_RDWR | O_CREAT | O_APPEND);
+    if (fd < 0)
+    {
+        printf("Error opening %s\n", "/var/log/keydogger.log");
+        exit(EOPEN);
+    }
+    dup2(fd, STDIN_FILENO);
+    dup2(fd, STDOUT_FILENO);
+    dup2(fd, STDERR_FILENO);
+
+    mode_t new_mask = umask(0);
+
+    if (chdir("/") < 0)
+    {
+        printf("Error changing directory to /");
+        exit(ECHDIR);
+    }
+
+    keydogger_daemon();
+}
+
+bool check_priveleges()
+{
+    if (environ == NULL)
+    {
+        printf("Error accessing ENV variables\n");
+        exit(EENV);
+    }
+    int i = 0;
+    while (environ[i] != NULL)
+    {
+        if (strncmp("USER=ROOT", environ[i], 9) == 0)
         {
-            printf("Error adding key to virtual input : %d\n", key_codes[i]);
-            exit(EADD);
+            return true;
         }
+        if (strncmp("SUDO_COMMAND", environ[i], 12) == 0)
+        {
+            return true;
+        }
+        i++;
     }
+    return false;
+}
 
-    memset(&usetup, 0, sizeof(usetup));
-    usetup.id.bustype = BUS_USB;
-    usetup.id.vendor = 0x7961646176;
-    usetup.id.product = 1999;
-    strcpy(usetup.name, "keydogger");
-
-    if ((status = ioctl(vkeyboard_device, UI_DEV_SETUP, &usetup)) < 0)
+int is_running()
+{
+    char *command[50];
+    int items_read = snprintf(command, 50, "pgrep -x %s", DAEMON);
+    pid_t pid;
+    if (items_read < 0)
     {
-        printf("Error setting up virtual device\n");
-        exit(ESETUP);
+        printf("Could not retrive process\n");
+        exit(EPGREP);
     }
-    if ((status = ioctl(vkeyboard_device, UI_DEV_CREATE)) < 0)
+    if (items_read > 50)
     {
-        printf("Error creating up virtual device\n");
-        exit(ECREATE);
-    };
+        printf("Command size too long\n");
+        exit(ECMD);
+    }
+    FILE *pgrep;
+    if ((pgrep = popen(command, "r")) == NULL)
+    {
+        printf("Unable to check if \"%s\" daemon is running or not.\n", DAEMON);
+        exit(EPIPE);
+    }
+    items_read = fscanf(pgrep, "%d", &pid);
+    pclose(pgrep);
+    if (items_read != EOF && pid > 0)
+    {
+        return pid;
+    }
+    return -1;
 }
 
 int main(int argc, char *argv[])
