@@ -76,12 +76,14 @@ void cleanup(struct trie *trie, int *fkeyboard, int *vkeyboard)
 void read_from_rc()
 {
     char *user = getlogin();
-    if (user == NULL){
+    if (user == NULL)
+    {
         printf("Error getting current user");
         exit(EUSER);
     }
     char *rc_file_path[256];
-    if (snprintf(rc_file_path, 256, "/home/%s/%s", user, RC_PATH) < 0){
+    if (snprintf(rc_file_path, 256, "/home/%s/%s", user, RC_PATH) < 0)
+    {
         printf("Error constructing config path %s\n", RC_PATH);
         exit(ESTR);
     }
@@ -496,6 +498,7 @@ int main(int argc, char *argv[])
         {
             printf("Not running\n");
         }
+        exit(EXIT_SUCCESS);
     }
 
     else if (strcmp(argv[1], "stop") == 0)
@@ -512,6 +515,7 @@ int main(int argc, char *argv[])
         {
             printf("Not running\n");
         }
+        exit(EXIT_SUCCESS);
     }
     else
     {
