@@ -6,3 +6,4 @@ keydogger.o
 settings.json
 vgcore*
 .gdb_history
+callgrind*
