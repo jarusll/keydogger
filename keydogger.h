@@ -7,6 +7,33 @@
 
 #define READABLE_KEYS 48
 
+// Errors
+#define EOPEN 1  // Cannot open
+#define EREAD 2  // Cannot read
+#define EINVCH 3 // Invalid character
+#define EINVC 4  // Invalid keycode
+#define EINIT 5  // Error initializing
+#define EADD 6   // Error adding
+#define ESETUP 7
+#define ECREATE 8
+#define EWRITE 9
+#define EENV 10
+#define EPERM 11
+#define EFORK 12
+#define ELEAD 13
+#define ECHDIR 14
+#define ERENAM 15
+#define EPGREP 16
+#define ECMD 17
+#define EPIPE 18
+#define EUSAGE 19
+#define ESTR 20
+#define EUSER 21
+
+#define RC_PATH "keydoggerrc"
+#define UINPUT_PATH "/dev/uinput"
+#define PID_PATH "/run/keydogger.pid"
+
 static const size_t *key_codes[] = {
     KEY_1,
     KEY_2,
