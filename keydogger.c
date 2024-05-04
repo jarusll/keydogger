@@ -42,10 +42,11 @@
 #define PID_PATH "/run/keydogger.pid"
 
 extern char **environ;
-
 static char *KEYBOARD_DEVICE = KEYBOARD_EVENT_PATH;
 static char *DAEMON = DAEMON_NAME;
 static struct trie *TRIE = NULL;
+static int fkeyboard_device;
+static int vkeyboard_device;
 
 void cleanup_trie(struct trie *trie)
 {
@@ -64,13 +65,13 @@ void cleanup_trie(struct trie *trie)
     }
 }
 
-void cleanup(struct trie *trie, int *fkeyboard, int *vkeyboard)
+void cleanup()
 {
-    close(fkeyboard);
-    ioctl(vkeyboard, UI_DEV_DESTROY);
-    close(vkeyboard);
+    close(fkeyboard_device);
+    ioctl(vkeyboard_device, UI_DEV_DESTROY);
+    close(vkeyboard_device);
 
-    cleanup_trie(trie);
+    cleanup_trie(TRIE);
 }
 
 void read_from_rc()
@@ -362,14 +363,14 @@ int is_running()
 
 void keydogger_daemon()
 {
-    int fkeyboard_device = open(KEYBOARD_DEVICE, O_RDWR | O_APPEND, NULL);
+    fkeyboard_device = open(KEYBOARD_DEVICE, O_RDWR | O_APPEND, NULL);
 
     if (fkeyboard_device < 0)
     {
         printf("Error opening %s\n", KEYBOARD_DEVICE);
         exit(EOPEN);
     }
-    int vkeyboard_device = open(UINPUT_PATH, O_WRONLY);
+    vkeyboard_device = open(UINPUT_PATH, O_WRONLY);
     ;
     if (open < 0)
     {
@@ -505,6 +506,7 @@ int main(int argc, char *argv[])
     {
         if (pid > 0)
         {
+            cleanup();
             int kill_status = kill(pid, SIGTERM);
             if (kill_status < 0)
             {
