@@ -128,6 +128,10 @@ char get_char_from_keycode(size_t keycode, bool is_shifted)
     {
         if (key_codes[i] == keycode)
         {
+            if (is_shifted)
+            {
+                return shifted_char_codes[i];
+            }
             return char_codes[i];
         }
     }
@@ -398,6 +402,7 @@ void keydogger_daemon()
             }
             continue;
         }
+        // handle shift up
         if (event.code == KEY_LEFTSHIFT || event.code == KEY_RIGHTSHIFT)
         {
             is_shifted = false;
@@ -406,26 +411,35 @@ void keydogger_daemon()
         char character = get_char_from_keycode(event.code, is_shifted);
         struct key key = get_key_from_char(character);
         size_t position = key.position;
-        // ignore if next character is not a trigger
-        if (current_trie->next[position] == NULL)
+
+        if (current_trie->next[position] != NULL)
         {
-            current_trie = TRIE;
-            continue;
-        }
-        current_trie = current_trie->next[position];
-        if (current_trie->is_leaf)
-        {
-            size_t key_char_count = 0;
-            struct trie *cursor = current_trie;
-            while (cursor->character != NULL)
+            struct trie *next = current_trie->next[position];
+            if (next->character == character && next->is_shifted == is_shifted)
             {
-                key_char_count++;
-                cursor = cursor->parent;
+                if (next->is_leaf)
+                {
+                    size_t key_char_count = 0;
+                    struct trie *cursor = next;
+                    while (cursor->character != NULL)
+                    {
+                        key_char_count++;
+                        cursor = cursor->parent;
+                    }
+                    send_backspace(vkeyboard_device, key_char_count);
+                    send_to_keyboard(vkeyboard_device, next->expansion);
+                    send_sync(vkeyboard_device);
+                    current_trie = TRIE;
+                }
+                else
+                {
+                    current_trie = next;
+                }
             }
-            send_backspace(vkeyboard_device, key_char_count);
-            send_to_keyboard(vkeyboard_device, current_trie->expansion);
-            send_sync(vkeyboard_device);
-            current_trie = TRIE;
+            else
+            {
+                current_trie = TRIE;
+            }
         }
     }
 }
@@ -494,7 +508,7 @@ int main(int argc, char *argv[])
     {
         if (pid > 0)
         {
-            printf("Already running at pid %d\n", &pid);
+            printf("Already running at pid %u\n", &pid);
             exit(EXIT_SUCCESS);
         }
         read_from_rc();
@@ -504,7 +518,7 @@ int main(int argc, char *argv[])
     {
         if (pid > 0)
         {
-            printf("keydogger running at pid %d\n", &pid);
+            printf("keydogger running at pid %u\n", &pid);
             exit(EXIT_SUCCESS);
         }
         printf("Not running\n");
@@ -525,6 +539,15 @@ int main(int argc, char *argv[])
             kill(pid, SIGKILL);
         }
         exit(EXIT_SUCCESS);
+    }
+    else if (strcmp(argv[1], "debug") == 0)
+    {
+        if (pid > 0)
+        {
+            kill(pid, SIGTERM);
+        }
+        read_from_rc();
+        keydogger_daemon();
     }
     else
     {

@@ -5,7 +5,7 @@
 #ifndef KEYDOGGER_H
 #define KEYDOGGER_H
 
-#define READABLE_KEYS 48
+#define READABLE_KEYS 50
 
 // Errors
 #define EOPEN 1  // Cannot open
