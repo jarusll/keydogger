@@ -5,3 +5,4 @@ keydogger.o
 *.o
 settings.json
 vgcore*
+.gdb_history
