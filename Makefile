@@ -22,7 +22,11 @@ debug: dev
 
 .PHONY: memcheck
 memcheck: dev
-	sudo valgrind --tool=memcheck ./keydogger
+	sudo valgrind --tool=memcheck ./keydogger debug
+
+.PHONY: benchmark
+benchmark: dev
+	sudo valgrind --tool=callgrind --dump-instr=yes --simulate-cache=yes --collect-jumps=yes ./keydogger debug
 
 .PHONY: clean
 clean:
