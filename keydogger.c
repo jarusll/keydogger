@@ -63,16 +63,28 @@ void read_from_rc()
     }
     TRIE = malloc(sizeof(struct trie));
     init_trie(TRIE, NULL);
-    FILE *rc_file = fopen(RC_PATH, "r");
+    FILE *rc_file = fopen(rc_file_path, "r");
     if (rc_file == NULL)
     {
-        printf("Error opening %s\n", RC_PATH);
+        printf("Error opening %s\n", rc_file_path);
         exit(EOPEN);
     }
     char *key[10], *value[100];
-    while (fscanf(rc_file, "%99[^=]=%99[^\n]\n", key, value) == 2)
+    char *line[256];
+    while (fgets(line, sizeof(line), rc_file))
     {
-        push_trie(key, value);
+        char *key = strtok(line, "=");
+        if (key)
+        {
+            char *value = strtok(NULL, "");
+            if (value)
+            {
+                char *newline = strchr(value, '\n');
+                if (newline)
+                    *newline = '\0';
+                push_trie(key, value);
+            }
+        }
     }
     fclose(rc_file);
 }
@@ -110,7 +122,7 @@ bool valid_key_code(size_t code)
     return false;
 }
 
-char get_char_from_keycode(size_t keycode)
+char get_char_from_keycode(size_t keycode, bool is_shifted)
 {
     for (size_t i = 0; i < READABLE_KEYS; i++)
     {
@@ -154,42 +166,44 @@ void send_sync(int device_fd)
     send_key_to_device(device_fd, event);
 }
 
-void init_trie(struct trie *trie, char character)
+void init_trie(struct trie *trie, struct key *key)
 {
     trie->character = '\0';
+    trie->is_shifted = false;
     trie->parent = NULL;
-    if (character != NULL)
-    {
-        trie->character = character;
-        trie->keycode = get_keycode_from_char(character);
-    }
     trie->is_leaf = false;
     trie->expansion = NULL;
+    if (key != NULL)
+    {
+        trie->character = key->character;
+        trie->keycode = key->keycode;
+        trie->is_shifted = key->is_shifted;
+    }
     for (size_t i = 0; i < READABLE_KEYS; i++)
     {
         trie->next[i] = NULL;
     }
 }
 
-size_t get_position_from_char(char character)
+struct key get_key_from_char(char character)
 {
+    struct key key;
+    key.character = character;
     for (size_t i = 0; i < READABLE_KEYS; i++)
     {
         if (character == char_codes[i])
         {
-            return i;
+            key.keycode = key_codes[i];
+            key.is_shifted = false;
+            key.position = i;
+            return key;
         }
-    }
-    exit(EINVCH);
-}
-
-size_t get_keycode_from_char(char character)
-{
-    for (size_t i = 0; i < READABLE_KEYS; i++)
-    {
-        if (character == char_codes[i])
+        if (character == shifted_char_codes[i])
         {
-            return key_codes[i];
+            key.keycode = key_codes[i];
+            key.is_shifted = true;
+            key.position = i;
+            return key;
         }
     }
     exit(EINVCH);
@@ -201,11 +215,12 @@ void push_trie(char *key, char *expansion)
     for (size_t i = 0; i < strlen(key); i++)
     {
         char character = key[i];
-        size_t position = get_position_from_char(character);
+        struct key key = get_key_from_char(character);
+        size_t position = key.position;
         if (current_trie->next[position] == NULL)
         {
             current_trie->next[position] = malloc(sizeof(struct trie));
-            init_trie(current_trie->next[position], character);
+            init_trie(current_trie->next[position], &key);
             current_trie->next[position]->parent = current_trie;
         }
         current_trie = current_trie->next[position];
@@ -223,7 +238,8 @@ void send_to_keyboard(int keyboard_device, char *string)
     for (size_t i = 0; i < len; i++)
     {
         char character = string[i];
-        event.code = get_keycode_from_char(character);
+        struct key key = get_key_from_char(character);
+        event.code = key.keycode;
         event.value = 1;
         send_key_to_device(keyboard_device, event);
         event.value = 0;
@@ -337,6 +353,7 @@ int is_running()
 void keydogger_daemon()
 {
     fkeyboard_device = open(KEYBOARD_DEVICE, O_RDWR | O_APPEND, NULL);
+    bool is_shifted = false;
 
     if (fkeyboard_device < 0)
     {
@@ -372,13 +389,23 @@ void keydogger_daemon()
         {
             continue;
         }
-        // ignore if key is down
+        // ignore if key is down unless its shift keys
         if (event.value != 0)
         {
+            if (event.code == KEY_LEFTSHIFT || event.code == KEY_RIGHTSHIFT)
+            {
+                is_shifted = true;
+            }
             continue;
         }
-        char character = get_char_from_keycode(event.code);
-        size_t position = get_position_from_char(character);
+        if (event.code == KEY_LEFTSHIFT || event.code == KEY_RIGHTSHIFT)
+        {
+            is_shifted = false;
+            continue;
+        }
+        char character = get_char_from_keycode(event.code, is_shifted);
+        struct key key = get_key_from_char(character);
+        size_t position = key.position;
         // ignore if next character is not a trigger
         if (current_trie->next[position] == NULL)
         {

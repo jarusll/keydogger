@@ -195,12 +195,21 @@ static const char *shifted_char_codes[] = {
 
 struct trie
 {
-    char character;
     struct trie *next[READABLE_KEYS];
+    char character;
     size_t keycode;
     bool is_leaf;
+    bool is_shifted;
     struct trie *parent;
     char *expansion;
+};
+
+struct key
+{
+    size_t position;
+    char character;
+    size_t keycode;
+    bool is_shifted;
 };
 
 void cleanup_trie(trie);
@@ -208,14 +217,13 @@ void cleanup();
 void read_from_rc();
 bool check_priveleges();
 bool valid_key_code(size_t code);
-char get_char_from_keycode(size_t keycode);
+char get_char_from_keycode(size_t keycode, bool is_shifted);
 // very unusual error, mismatch between def and impl
 // inline void send_key_to_device(int keyboard_device, struct input_event event);
 void send_backspace(int device_fd, size_t n);
 void send_sync(int device_fd);
-void init_trie(struct trie *trie, char character);
-size_t get_position_from_char(char character);
-size_t get_keycode_from_char(char character);
+void init_trie(struct trie *trie, struct key *key);
+struct key get_key_from_char(char character);
 void push_trie(char *key, char *expansion);
 void daemonize_keydogger();
 void keydogger_daemon();
