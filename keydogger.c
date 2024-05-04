@@ -34,8 +34,10 @@
 #define ECMD 17
 #define EPIPE 18
 #define EUSAGE 19
+#define ESTR 20
+#define EUSER 21
 
-#define RC_PATH "./keydoggerrc"
+#define RC_PATH "keydoggerrc"
 #define UINPUT_PATH "/dev/uinput"
 #define PID_PATH "/run/keydogger.pid"
 
@@ -73,6 +75,16 @@ void cleanup(struct trie *trie, int *fkeyboard, int *vkeyboard)
 
 void read_from_rc()
 {
+    char *user = getlogin();
+    if (user == NULL){
+        printf("Error getting current user");
+        exit(EUSER);
+    }
+    char *rc_file_path[256];
+    if (snprintf(rc_file_path, 256, "/home/%s/%s", user, RC_PATH) < 0){
+        printf("Error constructing config path %s\n", RC_PATH);
+        exit(ESTR);
+    }
     TRIE = malloc(sizeof(struct trie));
     init_trie(TRIE, NULL);
     FILE *rc_file = fopen(RC_PATH, "r");
