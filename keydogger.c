@@ -96,7 +96,6 @@ void read_from_rc()
     char *key[10], *value[100];
     while (fscanf(rc_file, "%99[^=]=%99[^\n]\n", key, value) == 2)
     {
-        printf("%s %s\n", key, value);
         push_trie(key, value);
     }
     fclose(rc_file);
