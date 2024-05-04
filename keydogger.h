@@ -83,6 +83,8 @@ static const size_t *key_codes[] = {
     KEY_DOT,
     KEY_SLASH,
     KEY_SPACE,
+    KEY_LEFTSHIFT,
+    KEY_RIGHTSHIFT,
 };
 
 static const char *char_codes[] = {
@@ -134,6 +136,8 @@ static const char *char_codes[] = {
     '.',
     '/',
     ' ',
+    '\0',
+    '\0',
 };
 
 static const char *shifted_char_codes[] = {
@@ -185,6 +189,8 @@ static const char *shifted_char_codes[] = {
     '>',
     '?',
     ' ',
+    '\0',
+    '\0',
 };
 
 struct trie
