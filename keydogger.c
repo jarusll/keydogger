@@ -19,6 +19,9 @@ extern char **environ;
 static char *KEYBOARD_DEVICE = KEYBOARD_EVENT_PATH;
 static char *DAEMON = DAEMON_NAME;
 static struct trie *TRIE = NULL;
+
+char *DEBUG_RC_PATH = "./keydoggerrc";
+
 static int fkeyboard_device;
 static int vkeyboard_device;
 static struct key *CACHE_KEY[CACHE_KEY_SIZE];
@@ -69,7 +72,7 @@ void cleanup()
     }
 }
 
-void read_from_rc()
+void read_from_rc(char *path)
 {
     char *user = getlogin();
     if (user == NULL)
@@ -85,6 +88,9 @@ void read_from_rc()
     }
     TRIE = malloc(sizeof(struct trie));
     init_trie(TRIE, NULL);
+    if (path != NULL){
+        strcpy(rc_file_path, path);
+    }
     FILE *rc_file = fopen(rc_file_path, "r");
     if (rc_file == NULL)
     {
@@ -560,7 +566,7 @@ int main(int argc, char *argv[])
             exit(EXIT_SUCCESS);
         }
         init_cache();
-        read_from_rc();
+        read_from_rc(NULL);
         daemonize_keydogger();
     }
     else if (strcmp(argv[1], "status") == 0)
@@ -596,7 +602,7 @@ int main(int argc, char *argv[])
             kill(pid, SIGTERM);
         }
         init_cache();
-        read_from_rc();
+        read_from_rc(DEBUG_RC_PATH);
         keydogger_daemon();
     }
     else
