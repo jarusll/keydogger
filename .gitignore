@@ -8,3 +8,4 @@ vgcore*
 .gdb_history
 callgrind*
 keydoggerrc
+*.out
