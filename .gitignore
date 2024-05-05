@@ -7,3 +7,4 @@ settings.json
 vgcore*
 .gdb_history
 callgrind*
+keydoggerrc
