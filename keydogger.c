@@ -195,6 +195,7 @@ void init_trie(struct trie *trie, struct key *key)
     trie->parent = NULL;
     trie->is_leaf = false;
     trie->expansion = NULL;
+    trie->size = 0;
     if (key != NULL)
     {
         trie->character = key->character;
@@ -219,6 +220,7 @@ void push_trie(char *key, char *expansion)
         {
             current_trie->next[position] = malloc(sizeof(struct trie));
             init_trie(current_trie->next[position], &key);
+            current_trie->next[position]->size = current_trie->size + 1;
             current_trie->next[position]->parent = current_trie;
         }
         current_trie = current_trie->next[position];
@@ -349,12 +351,7 @@ void keydogger_daemon()
         {
             size_t key_char_count = 0;
             struct trie *cursor = next;
-            while (cursor->character != NULL)
-            {
-                key_char_count++;
-                cursor = cursor->parent;
-            }
-            send_backspace(vkeyboard_device, key_char_count);
+            send_backspace(vkeyboard_device, next->size);
             send_to_keyboard(vkeyboard_device, next->expansion);
             send_sync(vkeyboard_device);
             current_trie = TRIE;

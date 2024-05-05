@@ -202,6 +202,7 @@ struct trie
     bool is_shifted;
     struct trie *parent;
     char *expansion;
+    size_t size;
 };
 
 struct key
