@@ -4,12 +4,10 @@
 #include <linux/input.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <stdarg.h>
 #include <stddef.h>
 #include <stdbool.h>
 #include <string.h>
 #include <signal.h>
-#include <bits/sigaction.h>
 #include <sys/prctl.h>
 #include <sys/stat.h>
 
