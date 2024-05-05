@@ -572,7 +572,7 @@ int main(int argc, char *argv[])
     {
         if (pid > 0)
         {
-            printf("Already running at pid %ls\n", &pid);
+            printf("Already running at pid %d\n", pid);
             exit(EXIT_SUCCESS);
         }
         init_cache();
@@ -583,7 +583,7 @@ int main(int argc, char *argv[])
     {
         if (pid > 0)
         {
-            printf("keydogger running at pid %ls\n", &pid);
+            printf("keydogger running at pid %d\n", pid);
             exit(EXIT_SUCCESS);
         }
         printf("Not running\n");
