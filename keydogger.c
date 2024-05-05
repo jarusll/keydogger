@@ -216,6 +216,24 @@ void send_sync(int device_fd)
     send_key_to_device(device_fd, event);
 }
 
+void send_shift_down()
+{
+    struct input_event event = {0};
+    event.type = EV_KEY;
+    event.code = KEY_LEFTSHIFT;
+    event.value = 1;
+    send_key_to_device(vkeyboard_device, event);
+}
+
+void send_shift_up()
+{
+    struct input_event event = {0};
+    event.type = EV_KEY;
+    event.code = KEY_LEFTSHIFT;
+    event.value = 0;
+    send_key_to_device(vkeyboard_device, event);
+}
+
 void send_to_keyboard(int keyboard_device, char *string)
 {
     size_t len = strlen(string);
@@ -227,9 +245,17 @@ void send_to_keyboard(int keyboard_device, char *string)
         struct key key = get_key_from_char(character);
         event.code = key.keycode;
         event.value = 1;
+        if (key.is_shifted)
+        {
+            send_shift_down();
+        }
         send_key_to_device(keyboard_device, event);
         event.value = 0;
         send_key_to_device(keyboard_device, event);
+        if (key.is_shifted)
+        {
+            send_shift_up();
+        }
     }
 }
 
