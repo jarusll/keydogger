@@ -5,6 +5,7 @@ PREFIX=/usr/local/bin/
 CALLGRIND_FILE=benchmark.out
 
 dev: keydogger.o
+	touch keydoggerrc
 	gcc -g -o keydogger keydogger.o
 
 build: keydogger.h keydogger.c
