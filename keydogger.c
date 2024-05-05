@@ -20,6 +20,15 @@ static char *DAEMON = DAEMON_NAME;
 static struct trie *TRIE = NULL;
 static int fkeyboard_device;
 static int vkeyboard_device;
+static struct key *CACHE_KEY[256];
+
+void init_key_cache()
+{
+    for (size_t i = 0; i < READABLE_KEYS * 2; i++)
+    {
+        CACHE_KEY[i] = NULL;
+    }
+}
 
 void cleanup_trie(struct trie *trie)
 {
@@ -45,6 +54,14 @@ void cleanup()
     close(vkeyboard_device);
 
     cleanup_trie(TRIE);
+    for (size_t i = 0; i < READABLE_KEYS * 2; i++)
+    {
+        if (CACHE_KEY[i] == NULL)
+        {
+            continue;
+        }
+        free(CACHE_KEY[i]);
+    }
 }
 
 void read_from_rc()
@@ -111,6 +128,11 @@ bool valid_key_code(size_t code)
 
 struct key get_key_from_char(char character)
 {
+    if (CACHE_KEY[(int)character] != NULL)
+    {
+        return *CACHE_KEY[(int)character];
+    }
+    CACHE_KEY[(int)character] = malloc(sizeof(struct key));
     struct key key;
     key.character = character;
     for (size_t i = 0; i < READABLE_KEYS; i++)
@@ -120,6 +142,7 @@ struct key get_key_from_char(char character)
             key.keycode = key_codes[i];
             key.is_shifted = false;
             key.position = i;
+            memcpy(CACHE_KEY[(int)character], &key, sizeof(key));
             return key;
         }
         if (character == shifted_char_codes[i])
@@ -127,6 +150,7 @@ struct key get_key_from_char(char character)
             key.keycode = key_codes[i];
             key.is_shifted = true;
             key.position = i;
+            memcpy(CACHE_KEY[(int)character], &key, sizeof(key));
             return key;
         }
     }
@@ -522,6 +546,7 @@ int main(int argc, char *argv[])
             printf("Already running at pid %u\n", &pid);
             exit(EXIT_SUCCESS);
         }
+        init_key_cache();
         read_from_rc();
         daemonize_keydogger();
     }
@@ -557,6 +582,7 @@ int main(int argc, char *argv[])
         {
             kill(pid, SIGTERM);
         }
+        init_key_cache();
         read_from_rc();
         keydogger_daemon();
     }
