@@ -113,18 +113,18 @@ void read_from_rc()
 bool valid_key_code(size_t code)
 {
     // 2 -> 13 = 1 -> =
-    // 16 -> 27 = q -> ]
-    // 30 -> 40, 41, 42 = a -> ', `, leftshift
-    // 43 -> 54 = backslash -> rightshift
-    // 57 -> space
     if (code >= KEY_1 && code <= KEY_EQUAL)
         return true;
+    // 16 -> 27 = q -> ]
     if (code >= KEY_Q && code <= KEY_RIGHTBRACE)
         return true;
+    // 30 -> 40, 41, 42 = a -> ', `, leftshift
     if (code >= KEY_A && code <= KEY_LEFTSHIFT)
         return true;
+    // 43 -> 54 = backslash -> rightshift
     if (code >= KEY_BACKSLASH && code <= KEY_RIGHTSHIFT)
         return true;
+    // 57 -> space
     if (code == KEY_SPACE)
         return true;
     return false;
