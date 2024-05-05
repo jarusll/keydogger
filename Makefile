@@ -2,6 +2,7 @@
 KEYBOARD_EVENT_PATH=/dev/input/event2
 DAEMON_NAME=keydoggerd
 PREFIX=/usr/local/bin/
+CALLGRIND_FILE=benchmark.out
 
 dev: keydogger.o
 	gcc -g -o keydogger keydogger.o
@@ -26,7 +27,12 @@ memcheck: dev
 
 .PHONY: benchmark
 benchmark: dev
-	sudo valgrind --tool=callgrind --dump-instr=yes --simulate-cache=yes --collect-jumps=yes ./keydogger debug
+	-rm callgrind*
+	sudo valgrind --tool=callgrind --dump-instr=yes --simulate-cache=yes --collect-jumps=yes --callgrind-out-file=$(CALLGRIND_FILE) ./keydogger debug
+
+.PHONY: viz
+viz:
+	kcachegrind ./$(CALLGRIND_FILE)
 
 .PHONY: clean
 clean:
@@ -34,3 +40,4 @@ clean:
 	-rm keydogger
 	-rm callgrind*
 	-rm vgcore*
+	-rm *.out
