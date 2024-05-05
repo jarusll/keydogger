@@ -27,6 +27,7 @@ memcheck: dev
 .PHONY: benchmark
 benchmark: dev
 	sudo valgrind --tool=callgrind --dump-instr=yes --simulate-cache=yes --collect-jumps=yes ./keydogger debug
+	sudo chown $USER callgrind*
 
 .PHONY: clean
 clean:

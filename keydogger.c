@@ -91,11 +91,21 @@ void read_from_rc()
 
 bool valid_key_code(size_t code)
 {
-    for (size_t i = 0; i < READABLE_KEYS; i++)
-    {
-        if (key_codes[i] == code)
-            return true;
-    }
+    // 2 -> 13 = 1 -> =
+    // 16 -> 27 = q -> ]
+    // 30 -> 40, 41, 42 = a -> ', `, leftshift
+    // 43 -> 54 = backslash -> rightshift
+    // 57 -> space
+    if (code >= KEY_1 || code <= KEY_EQUAL)
+        return true;
+    if (code >= KEY_Q || code <= KEY_RIGHTBRACE)
+        return true;
+    if (code >= KEY_A || code <= KEY_LEFTSHIFT)
+        return true;
+    if (code >= KEY_BACKSLASH || code <= KEY_RIGHTSHIFT)
+        return true;
+    if (code == KEY_SPACE)
+        return true;
     return false;
 }
 
