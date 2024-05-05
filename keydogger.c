@@ -88,7 +88,8 @@ void read_from_rc(char *path)
     }
     TRIE = malloc(sizeof(struct trie));
     init_trie(TRIE, NULL);
-    if (path != NULL){
+    if (path != NULL)
+    {
         strcpy(rc_file_path, path);
     }
     FILE *rc_file = fopen(rc_file_path, "r");
@@ -377,8 +378,8 @@ void keydogger_daemon()
             continue;
         }
 
-        // ignore key presses
-        if (event.value == 1)
+        // ignore key up event
+        if (event.value == 0)
         {
             continue;
         }
@@ -404,6 +405,15 @@ void keydogger_daemon()
         // if next is terminal, expand it
         if (next->is_leaf)
         {
+            // send key up event for last character from trigger
+            struct input_event event = {0};
+            event.code = next->keycode;
+            event.value = 0;
+            event.type = EV_KEY;
+
+            send_key_to_device(fkeyboard_device, event);
+            send_sync(fkeyboard_device);
+
             send_backspace(vkeyboard_device, next->size);
             send_to_keyboard(vkeyboard_device, next->expansion);
             send_sync(vkeyboard_device);
