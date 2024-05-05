@@ -96,13 +96,13 @@ bool valid_key_code(size_t code)
     // 30 -> 40, 41, 42 = a -> ', `, leftshift
     // 43 -> 54 = backslash -> rightshift
     // 57 -> space
-    if (code >= KEY_1 || code <= KEY_EQUAL)
+    if (code >= KEY_1 && code <= KEY_EQUAL)
         return true;
-    if (code >= KEY_Q || code <= KEY_RIGHTBRACE)
+    if (code >= KEY_Q && code <= KEY_RIGHTBRACE)
         return true;
-    if (code >= KEY_A || code <= KEY_LEFTSHIFT)
+    if (code >= KEY_A && code <= KEY_LEFTSHIFT)
         return true;
-    if (code >= KEY_BACKSLASH || code <= KEY_RIGHTSHIFT)
+    if (code >= KEY_BACKSLASH && code <= KEY_RIGHTSHIFT)
         return true;
     if (code == KEY_SPACE)
         return true;
@@ -146,6 +146,7 @@ char get_char_from_keycode(size_t keycode, bool is_shifted)
             return char_codes[i];
         }
     }
+    printf("Error finding keycode for character %zu\n", keycode);
     exit(EINVC);
 }
 
@@ -295,7 +296,6 @@ void keydogger_daemon()
         exit(EOPEN);
     }
     vkeyboard_device = open(UINPUT_PATH, O_WRONLY);
-    ;
     if (open < 0)
     {
         printf("Error reading from %s\n", UINPUT_PATH);
