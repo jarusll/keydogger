@@ -9,3 +9,6 @@ define reload
     # redraw screen
     refresh
 end
+
+# always start for debug
+set args debug
