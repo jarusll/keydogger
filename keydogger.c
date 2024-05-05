@@ -330,34 +330,38 @@ void keydogger_daemon()
         struct key key = get_key_from_char(character);
         size_t position = key.position;
 
-        if (current_trie->next[position] != NULL)
+        // if next doesnt match trigger, reset
+        if (current_trie->next[position] == NULL)
         {
-            struct trie *next = current_trie->next[position];
-            if (next->character == character && next->is_shifted == is_shifted)
+            current_trie = TRIE;
+            continue;
+        }
+
+        struct trie *next = current_trie->next[position];
+        // if next doesnt match trigger, reset
+        if (next->character != character || next->is_shifted != is_shifted)
+        {
+            current_trie = TRIE;
+            continue;
+        }
+        // if next is terminal, expand it
+        if (next->is_leaf)
+        {
+            size_t key_char_count = 0;
+            struct trie *cursor = next;
+            while (cursor->character != NULL)
             {
-                if (next->is_leaf)
-                {
-                    size_t key_char_count = 0;
-                    struct trie *cursor = next;
-                    while (cursor->character != NULL)
-                    {
-                        key_char_count++;
-                        cursor = cursor->parent;
-                    }
-                    send_backspace(vkeyboard_device, key_char_count);
-                    send_to_keyboard(vkeyboard_device, next->expansion);
-                    send_sync(vkeyboard_device);
-                    current_trie = TRIE;
-                }
-                else
-                {
-                    current_trie = next;
-                }
+                key_char_count++;
+                cursor = cursor->parent;
             }
-            else
-            {
-                current_trie = TRIE;
-            }
+            send_backspace(vkeyboard_device, key_char_count);
+            send_to_keyboard(vkeyboard_device, next->expansion);
+            send_sync(vkeyboard_device);
+            current_trie = TRIE;
+        }
+        else
+        {
+            current_trie = next;
         }
     }
 }
