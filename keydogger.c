@@ -347,21 +347,35 @@ void keydogger_daemon()
         {
             continue;
         }
-        // ignore if key is down unless its shift keys
-        if (event.value != 0)
+
+        // Handle shift down
+        if (event.value == 1 && (event.code == KEY_LEFTSHIFT || event.code == KEY_RIGHTSHIFT))
         {
-            if (event.code == KEY_LEFTSHIFT || event.code == KEY_RIGHTSHIFT)
-            {
-                is_shifted = true;
-            }
+            printf("Shift down\n");
+            is_shifted = true;
             continue;
         }
-        // handle shift up
-        if (event.code == KEY_LEFTSHIFT || event.code == KEY_RIGHTSHIFT)
+
+        // Handle shift up
+        if (event.value == 0 && (event.code == KEY_LEFTSHIFT || event.code == KEY_RIGHTSHIFT))
         {
+            printf("Shift up\n");
             is_shifted = false;
             continue;
         }
+
+        // ignore shift keys
+        if (event.code == KEY_LEFTSHIFT || event.code == KEY_RIGHTSHIFT)
+        {
+            continue;
+        }
+
+        // ignore key presses
+        if (event.value == 1)
+        {
+            continue;
+        }
+
         char character = get_char_from_keycode(event.code, is_shifted);
         struct key key = get_key_from_char(character);
         size_t position = key.position;
