@@ -142,7 +142,7 @@ struct key get_key_from_char(char character)
     {
         return (struct key) * CACHE_KEY[(int)character];
     }
-    struct key key;
+    struct key key = {0};
     key.character = character;
     for (size_t i = 0; i < READABLE_KEYS; i++)
     {
@@ -276,7 +276,7 @@ void push_trie(char *key, char *expansion)
 
 void init_virtual_device(int vkeyboard_device)
 {
-    struct uinput_setup usetup;
+    struct uinput_setup usetup = {0};
 
     int status;
     // setup as keyboard
