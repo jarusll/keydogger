@@ -6,6 +6,8 @@
 #define KEYDOGGER_H
 
 #define READABLE_KEYS 50
+#define CACHE_KEY_SIZE 256
+#define CACHE_CHAR_SIZE 64
 
 // Errors
 #define EOPEN 1  // Cannot open
@@ -34,7 +36,7 @@
 #define UINPUT_PATH "/dev/uinput"
 #define PID_PATH "/run/keydogger.pid"
 
-static const size_t *key_codes[] = {
+static const int key_codes[] = {
     KEY_1,
     KEY_2,
     KEY_3,
@@ -87,7 +89,7 @@ static const size_t *key_codes[] = {
     KEY_RIGHTSHIFT,
 };
 
-static const char *char_codes[] = {
+static const char char_codes[] = {
     '1',
     '2',
     '3',
@@ -140,7 +142,7 @@ static const char *char_codes[] = {
     '\0',
 };
 
-static const char *shifted_char_codes[] = {
+static const int shifted_char_codes[] = {
     '!',
     '@',
     '#',
@@ -213,7 +215,7 @@ struct key
     bool is_shifted;
 };
 
-void cleanup_trie(trie);
+void cleanup_trie(struct trie *trie);
 void cleanup();
 void read_from_rc();
 bool check_priveleges();

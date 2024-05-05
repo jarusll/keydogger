@@ -11,6 +11,7 @@
 #include <signal.h>
 #include <bits/sigaction.h>
 #include <sys/prctl.h>
+#include <sys/stat.h>
 
 #include "keydogger.h"
 
@@ -20,13 +21,17 @@ static char *DAEMON = DAEMON_NAME;
 static struct trie *TRIE = NULL;
 static int fkeyboard_device;
 static int vkeyboard_device;
-static struct key *CACHE_KEY[256];
+static struct key *CACHE_KEY[CACHE_KEY_SIZE];
 
-void init_key_cache()
+void init_cache()
 {
-    for (size_t i = 0; i < READABLE_KEYS * 2; i++)
+    for (size_t i = 0; i < CACHE_KEY_SIZE; i++)
     {
-        CACHE_KEY[i] = NULL;
+        CACHE_KEY[i] = malloc(sizeof(struct key));
+        CACHE_KEY[i]->position = (size_t)NULL;
+        CACHE_KEY[i]->character = '\0';
+        CACHE_KEY[i]->is_shifted = false;
+        CACHE_KEY[i]->keycode = (size_t)NULL;
     }
 }
 
@@ -54,7 +59,7 @@ void cleanup()
     close(vkeyboard_device);
 
     cleanup_trie(TRIE);
-    for (size_t i = 0; i < READABLE_KEYS * 2; i++)
+    for (size_t i = 0; i < CACHE_KEY_SIZE; i++)
     {
         if (CACHE_KEY[i] == NULL)
         {
@@ -72,7 +77,7 @@ void read_from_rc()
         printf("Error getting current user");
         exit(EUSER);
     }
-    char *rc_file_path[256];
+    char rc_file_path[256];
     if (snprintf(rc_file_path, 256, "/home/%s/%s", user, RC_PATH) < 0)
     {
         printf("Error constructing config path %s\n", RC_PATH);
@@ -86,8 +91,7 @@ void read_from_rc()
         printf("Error opening %s\n", rc_file_path);
         exit(EOPEN);
     }
-    char *key[10], *value[100];
-    char *line[256];
+    char line[256];
     while (fgets(line, sizeof(line), rc_file))
     {
         char *key = strtok(line, "=");
@@ -128,18 +132,17 @@ bool valid_key_code(size_t code)
 
 struct key get_key_from_char(char character)
 {
-    if (CACHE_KEY[(int)character] != NULL)
+    if (CACHE_KEY[(int)character]->character != '\0')
     {
-        return *CACHE_KEY[(int)character];
+        return (struct key) * CACHE_KEY[(int)character];
     }
-    CACHE_KEY[(int)character] = malloc(sizeof(struct key));
     struct key key;
     key.character = character;
     for (size_t i = 0; i < READABLE_KEYS; i++)
     {
         if (character == char_codes[i])
         {
-            key.keycode = key_codes[i];
+            key.keycode = (size_t)key_codes[i];
             key.is_shifted = false;
             key.position = i;
             memcpy(CACHE_KEY[(int)character], &key, sizeof(key));
@@ -147,7 +150,7 @@ struct key get_key_from_char(char character)
         }
         if (character == shifted_char_codes[i])
         {
-            key.keycode = key_codes[i];
+            key.keycode = (size_t)key_codes[i];
             key.is_shifted = true;
             key.position = i;
             memcpy(CACHE_KEY[(int)character], &key, sizeof(key));
@@ -165,9 +168,9 @@ char get_char_from_keycode(size_t keycode, bool is_shifted)
         {
             if (is_shifted)
             {
-                return shifted_char_codes[i];
+                return (char)shifted_char_codes[i];
             }
-            return char_codes[i];
+            return (char)char_codes[i];
         }
     }
     printf("Error finding keycode for character %zu\n", keycode);
@@ -186,7 +189,7 @@ void send_key_to_device(int keyboard_device, struct input_event event)
 
 void send_backspace(int device_fd, size_t n)
 {
-    struct input_event event;
+    struct input_event event = {0};
     event.code = KEY_BACKSPACE;
     event.type = EV_KEY;
     for (size_t i = 0; i < n; i++)
@@ -200,7 +203,7 @@ void send_backspace(int device_fd, size_t n)
 
 void send_sync(int device_fd)
 {
-    struct input_event event;
+    struct input_event event = {0};
     event.type = EV_SYN;
     event.value = SYN_REPORT;
     send_key_to_device(device_fd, event);
@@ -209,7 +212,7 @@ void send_sync(int device_fd)
 void send_to_keyboard(int keyboard_device, char *string)
 {
     size_t len = strlen(string);
-    struct input_event event;
+    struct input_event event = {0};
     event.type = EV_KEY;
     for (size_t i = 0; i < len; i++)
     {
@@ -293,7 +296,7 @@ void init_virtual_device(int vkeyboard_device)
 
     memset(&usetup, 0, sizeof(usetup));
     usetup.id.bustype = BUS_USB;
-    usetup.id.vendor = 0x7961646176;
+    usetup.id.vendor = 1187;
     usetup.id.product = 1999;
     strcpy(usetup.name, "keydogger");
 
@@ -327,7 +330,7 @@ void keydogger_daemon()
     }
 
     init_virtual_device(vkeyboard_device);
-    struct input_event event;
+    struct input_event event = {0};
     struct trie *current_trie = TRIE;
     while (1)
     {
@@ -351,7 +354,6 @@ void keydogger_daemon()
         // Handle shift down
         if (event.value == 1 && (event.code == KEY_LEFTSHIFT || event.code == KEY_RIGHTSHIFT))
         {
-            printf("Shift down\n");
             is_shifted = true;
             continue;
         }
@@ -359,7 +361,6 @@ void keydogger_daemon()
         // Handle shift up
         if (event.value == 0 && (event.code == KEY_LEFTSHIFT || event.code == KEY_RIGHTSHIFT))
         {
-            printf("Shift up\n");
             is_shifted = false;
             continue;
         }
@@ -397,8 +398,6 @@ void keydogger_daemon()
         // if next is terminal, expand it
         if (next->is_leaf)
         {
-            size_t key_char_count = 0;
-            struct trie *cursor = next;
             send_backspace(vkeyboard_device, next->size);
             send_to_keyboard(vkeyboard_device, next->expansion);
             send_sync(vkeyboard_device);
@@ -473,7 +472,7 @@ void daemonize_keydogger()
     dup2(fd, STDOUT_FILENO);
     dup2(fd, STDERR_FILENO);
 
-    mode_t new_mask = umask(0);
+    umask(0);
 
     if (chdir("/") < 0)
     {
@@ -509,7 +508,7 @@ bool check_priveleges()
 
 int is_running()
 {
-    char *command[50];
+    char command[50];
     int items_read = snprintf(command, 50, "pgrep -x %s", DAEMON);
     pid_t pid;
     if (items_read < 0)
@@ -557,10 +556,10 @@ int main(int argc, char *argv[])
     {
         if (pid > 0)
         {
-            printf("Already running at pid %u\n", &pid);
+            printf("Already running at pid %ls\n", &pid);
             exit(EXIT_SUCCESS);
         }
-        init_key_cache();
+        init_cache();
         read_from_rc();
         daemonize_keydogger();
     }
@@ -568,7 +567,7 @@ int main(int argc, char *argv[])
     {
         if (pid > 0)
         {
-            printf("keydogger running at pid %u\n", &pid);
+            printf("keydogger running at pid %ls\n", &pid);
             exit(EXIT_SUCCESS);
         }
         printf("Not running\n");
@@ -596,7 +595,7 @@ int main(int argc, char *argv[])
         {
             kill(pid, SIGTERM);
         }
-        init_key_cache();
+        init_cache();
         read_from_rc();
         keydogger_daemon();
     }
