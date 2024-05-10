@@ -1,5 +1,7 @@
-# change this
+# Configure start
 KEYBOARD_EVENT_PATH=/dev/input/event2
+# Configure end
+
 DAEMON_NAME=keydoggerd
 PREFIX=/usr/local/bin/
 CALLGRIND_FILE=benchmark.out
