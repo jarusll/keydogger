@@ -12,9 +12,10 @@ cd keydogger
 ```
 
 Configure `KEYBOARD_EVENT_PATH` in `Makefile`. Can use `evtest` to find out keyboard input device.
-Run
+
+To install, run the following as sudo
 ```
-make clean install # run as sudo
+make clean install
 ```
 
 # Testing
@@ -30,7 +31,7 @@ Set trigger and expansion values in `~/keydoggerrc`
 ```
 
 # Acknowledgements
-- [emisilve86](https://github.com/emisilve86/Keylogger-Daemon-Linux) for their code.
+- [emisilve86](https://github.com/emisilve86/Keylogger-Daemon-Linux) for their code
 - [Arjun](https://github.com/uhrjun) for the name `Keydogger`
 - [Espanso](https://github.com/federico-terzi/espanso) for the `1000` microsends of delay between events
 
