@@ -246,13 +246,17 @@ void send_to_keyboard(int keyboard_device, char *string)
         if (key.is_shifted)
         {
             send_shift_down();
+            usleep(SLEEP_TIME);
         }
         send_key_to_device(keyboard_device, event);
+        usleep(SLEEP_TIME);
         event.value = 0;
         send_key_to_device(keyboard_device, event);
+        usleep(SLEEP_TIME);
         if (key.is_shifted)
         {
             send_shift_up();
+            usleep(SLEEP_TIME);
         }
     }
 }
