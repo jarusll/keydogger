@@ -1,6 +1,10 @@
 # Keydogger
 A zero dependency keyboard macro processor for Linux.
 
+# Prerequisites
+- `gcc`
+- `make`
+
 # Installation
 ```
 git clone https://github.com/jarusll/keydogger.git
@@ -11,6 +15,12 @@ Configure `KEYBOARD_EVENT_PATH` in `Makefile`. Can use `evtest` to find out keyb
 Run
 ```
 make clean build
+```
+
+# Testing
+You can play with macros using the local `keydoggerrc` file by
+```
+sudo ./keydogger debug
 ```
 
 # Configuration
