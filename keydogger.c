@@ -584,7 +584,7 @@ int main(int argc, char *argv[])
 {
     if (argc < 2)
     {
-        printf("Usage error: keyloggerd start | stop | status\n");
+        printf("Usage error: keyloggerd start | stop | status | debug\n");
         exit(EUSAGE);
     }
 
@@ -645,7 +645,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-        printf("Usage error: keyloggerd start | stop | status\n");
+        printf("Usage error: keyloggerd start | stop | status | debug\n");
         exit(EUSAGE);
     }
 }
