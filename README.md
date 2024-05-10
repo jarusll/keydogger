@@ -14,7 +14,7 @@ cd keydogger
 Configure `KEYBOARD_EVENT_PATH` in `Makefile`. Can use `evtest` to find out keyboard input device.
 Run
 ```
-make clean build
+make clean install # run as sudo
 ```
 
 # Testing
