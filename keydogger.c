@@ -580,6 +580,29 @@ int is_running()
     return -1;
 }
 
+void print_trie(struct trie *trie, size_t level)
+{
+    if (trie == NULL)
+        return;
+    for (size_t i = 0; i < level; i++)
+    {
+        printf("-");
+    }
+    printf("%c", trie->character);
+    if (trie->is_leaf)
+    {
+        printf(" = %s\n", trie->expansion);
+    }
+    else
+    {
+        printf("\n");
+    }
+    for (size_t i = 0; i < READABLE_KEYS; i++)
+    {
+        print_trie(trie->next[i], level + 1);
+    }
+}
+
 int main(int argc, char *argv[])
 {
     if (argc < 2)
@@ -642,6 +665,12 @@ int main(int argc, char *argv[])
         init_cache();
         read_from_rc(DEBUG_RC_PATH);
         keydogger_daemon();
+    }
+    else if (strcmp(argv[1], "viz") == 0)
+    {
+        init_cache();
+        read_from_rc(DEBUG_RC_PATH);
+        print_trie(TRIE, 0);
     }
     else
     {

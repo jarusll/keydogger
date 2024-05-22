@@ -37,7 +37,7 @@
 #define UINPUT_PATH "/dev/uinput"
 #define PID_PATH "/run/keydogger.pid"
 
-static const int key_codes[] = {
+static const size_t key_codes[] = {
     KEY_1,
     KEY_2,
     KEY_3,
@@ -232,5 +232,6 @@ void push_trie(char *key, char *expansion);
 void daemonize_keydogger();
 void keydogger_daemon();
 void init_virtual_device(int vkeyboard_device);
+void print_trie(struct trie *trie, size_t level);
 
 #endif
