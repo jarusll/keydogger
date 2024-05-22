@@ -139,7 +139,7 @@ struct key get_key_from_char(char character)
 {
     if (CACHE_KEY[(int)character]->character != '\0')
     {
-        return (struct key) * CACHE_KEY[(int)character];
+        return *CACHE_KEY[(int)character];
     }
     struct key key = {0};
     key.character = character;
@@ -324,7 +324,7 @@ void init_virtual_device(int vkeyboard_device)
     {
         if ((status = ioctl(vkeyboard_device, UI_SET_KEYBIT, key_codes[i])) < 0)
         {
-            printf("Error adding key to virtual input : %d\n", key_codes[i]);
+            printf("Error adding key to virtual input : %ld\n", key_codes[i]);
             exit(EADD);
         }
     }
@@ -358,7 +358,7 @@ void keydogger_daemon()
         exit(EOPEN);
     }
     vkeyboard_device = open(UINPUT_PATH, O_WRONLY);
-    if (open < 0)
+    if (vkeyboard_device < 0)
     {
         printf("Error reading from %s\n", UINPUT_PATH);
         exit(EOPEN);
