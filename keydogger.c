@@ -10,7 +10,11 @@
 #include <signal.h>
 #include <sys/prctl.h>
 #include <sys/stat.h>
+#include <wchar.h>
+#include <locale.h>
+#include <iconv.h>
 
+#define UTF8_SEQUENCE_MAXLEN 6
 #include "keydogger.h"
 
 extern char **environ;
@@ -70,6 +74,23 @@ void cleanup()
     }
 }
 
+void wide_to_utf8(wchar_t *input, char *output)
+{
+    iconv_t cd = iconv_open("UTF-8", "WCHAR_T");
+    size_t wcs_len = (wcslen(input) + 1) * sizeof(wchar_t);
+    size_t utf8_len = (wcs_len + 1) * UTF8_SEQUENCE_MAXLEN;
+    char *utf8_buffer = malloc(utf8_len + 1);
+    char **inbuf = (char **)&input;
+    char **outbuf = (char **)&output;
+    utf8_buffer[utf8_len] = '\0';
+    size_t ret = iconv(cd, inbuf, &wcs_len, outbuf, &utf8_len);
+    if (ret == (size_t)-1)
+    {
+        wprintf(L"Error converting wchar string to utf8 - %ls\n", input);
+        exit(ECVRT);
+    }
+}
+
 void read_from_rc(char *path)
 {
     char *user = getlogin();
@@ -96,19 +117,31 @@ void read_from_rc(char *path)
         printf("Error opening %s\n", rc_file_path);
         exit(EOPEN);
     }
-    char line[256];
-    while (fgets(line, sizeof(line), rc_file))
+    wchar_t line[256];
+    while (fgetws(line, sizeof(line), rc_file) != NULL)
     {
-        char *key = strtok(line, "=");
+        wchar_t *state = NULL;
+        wchar_t *key = wcstok(line, L"=", &state);
         if (key)
         {
-            char *value = strtok(NULL, "");
+            wchar_t *value = wcstok(NULL, L"", &state);
             if (value)
             {
-                char *newline = strchr(value, '\n');
+                wchar_t *newline = wcschr(value, L'\n');
                 if (newline)
-                    *newline = '\0';
-                push_trie(key, value);
+                {
+                    *newline = L'\0';
+                }
+                size_t wcs_key_len = (wcslen(key) + 1) * sizeof(wchar_t);
+                size_t utf8_key_len = (wcs_key_len + 1) * UTF8_SEQUENCE_MAXLEN;
+                char *utf_key = malloc(utf8_key_len);
+                size_t wcs_value_len = (wcslen(value) + 1) * sizeof(wchar_t);
+                size_t utf8_value_len = (wcs_value_len + 1) * UTF8_SEQUENCE_MAXLEN;
+                char *utf_value = malloc(utf8_value_len);
+                wide_to_utf8(key, utf_key);
+                wide_to_utf8(value, utf_value);
+                wprintf(L"%ls = %ls\n", key, value);
+                push_trie(utf_key, utf_value);
             }
         }
     }
@@ -671,6 +704,13 @@ int main(int argc, char *argv[])
         init_cache();
         read_from_rc(DEBUG_RC_PATH);
         print_trie(TRIE, 0);
+    }
+    else if (strcmp(argv[1], "unicode") == 0)
+    {
+        setlocale(LC_ALL, "");
+        init_cache();
+        read_from_rc(DEBUG_RC_PATH);
+        keydogger_daemon();
     }
     else
     {
