@@ -280,26 +280,17 @@ struct key get_key_from_char(char character)
 {
     struct key key = {0};
     key.character = character;
-    for (size_t i = 0; i < READABLE_KEYS; i++)
+    key.is_shifted = false;
+    int position = (int)character - 1;
+    int keycode = char_codes[position];
+    if (keycode & FLAG_UPPERCASE)
     {
-        if (character == char_codes[i])
-        {
-            key.keycode = (size_t)key_codes[i];
-            key.is_shifted = false;
-            key.position = i;
-            memcpy(CACHE_KEY[(int)character], &key, sizeof(key));
-            return key;
-        }
-        if (character == shifted_char_codes[i])
-        {
-            key.keycode = (size_t)key_codes[i];
             key.is_shifted = true;
-            key.position = i;
-            memcpy(CACHE_KEY[(int)character], &key, sizeof(key));
-            return key;
-        }
+        keycode &= ~FLAG_UPPERCASE;
     }
-    exit(EINVCH);
+    key.keycode = keycode;
+    key.position = position;
+    return key;
 }
 
 char get_char_from_keycode(size_t keycode, bool is_shifted)
