@@ -6,9 +6,10 @@
 #define KEYDOGGER_H
 
 #define SLEEP_TIME 1000
-#define READABLE_KEYS 50
-#define CACHE_KEY_SIZE 256
-#define CACHE_CHAR_SIZE 64
+#define READABLE_KEYS 126
+#define LINUX_KEYS 50
+
+#define FLAG_UPPERCASE 512
 
 // Errors
 #define EOPEN 1  // Cannot open
