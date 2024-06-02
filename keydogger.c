@@ -26,19 +26,136 @@ char *DEBUG_RC_PATH = "./keydoggerrc";
 
 static int fkeyboard_device;
 static int vkeyboard_device;
-static struct key *CACHE_KEY[CACHE_KEY_SIZE];
 
-void init_cache()
-{
-    for (size_t i = 0; i < CACHE_KEY_SIZE; i++)
-    {
-        CACHE_KEY[i] = malloc(sizeof(struct key));
-        CACHE_KEY[i]->position = (size_t)NULL;
-        CACHE_KEY[i]->character = '\0';
-        CACHE_KEY[i]->is_shifted = false;
-        CACHE_KEY[i]->keycode = (size_t)NULL;
-    }
-}
+static int char_codes[] = {
+    // 0 -> 33
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    KEY_SPACE,
+    KEY_1 | FLAG_UPPERCASE,
+    KEY_APOSTROPHE | FLAG_UPPERCASE,
+    KEY_3 | FLAG_UPPERCASE,
+    KEY_4 | FLAG_UPPERCASE,
+    KEY_5 | FLAG_UPPERCASE,
+    KEY_7 | FLAG_UPPERCASE,
+    KEY_APOSTROPHE,
+    KEY_9 | FLAG_UPPERCASE,
+    KEY_0 | FLAG_UPPERCASE,
+    KEY_8 | FLAG_UPPERCASE,
+    KEY_EQUAL | FLAG_UPPERCASE,
+    KEY_COMMA,
+    KEY_MINUS,
+    KEY_DOT,
+    KEY_SLASH,
+    KEY_0,
+    KEY_1,
+    KEY_2,
+    KEY_3,
+    KEY_4,
+    KEY_5,
+    KEY_6,
+    KEY_7,
+    KEY_8,
+    KEY_9,
+    KEY_SEMICOLON | FLAG_UPPERCASE,
+    KEY_SEMICOLON,
+    KEY_COMMA | FLAG_UPPERCASE,
+    KEY_EQUAL,
+    KEY_DOT | FLAG_UPPERCASE,
+    KEY_SLASH | FLAG_UPPERCASE,
+    KEY_2 | FLAG_UPPERCASE,
+    KEY_A | FLAG_UPPERCASE,
+    KEY_B | FLAG_UPPERCASE,
+    KEY_C | FLAG_UPPERCASE,
+    KEY_D | FLAG_UPPERCASE,
+    KEY_E | FLAG_UPPERCASE,
+    KEY_F | FLAG_UPPERCASE,
+    KEY_G | FLAG_UPPERCASE,
+    KEY_H | FLAG_UPPERCASE,
+    KEY_I | FLAG_UPPERCASE,
+    KEY_J | FLAG_UPPERCASE,
+    KEY_K | FLAG_UPPERCASE,
+    KEY_L | FLAG_UPPERCASE,
+    KEY_M | FLAG_UPPERCASE,
+    KEY_N | FLAG_UPPERCASE,
+    KEY_O | FLAG_UPPERCASE,
+    KEY_P | FLAG_UPPERCASE,
+    KEY_Q | FLAG_UPPERCASE,
+    KEY_R | FLAG_UPPERCASE,
+    KEY_S | FLAG_UPPERCASE,
+    KEY_T | FLAG_UPPERCASE,
+    KEY_U | FLAG_UPPERCASE,
+    KEY_V | FLAG_UPPERCASE,
+    KEY_W | FLAG_UPPERCASE,
+    KEY_X | FLAG_UPPERCASE,
+    KEY_Y | FLAG_UPPERCASE,
+    KEY_Z | FLAG_UPPERCASE,
+    KEY_LEFTBRACE | FLAG_UPPERCASE,
+    KEY_BACKSLASH,
+    KEY_RIGHTBRACE | FLAG_UPPERCASE,
+    KEY_6 | FLAG_UPPERCASE,
+    KEY_MINUS | FLAG_UPPERCASE,
+    KEY_GRAVE,
+    KEY_A,
+    KEY_B,
+    KEY_C,
+    KEY_D,
+    KEY_E,
+    KEY_F,
+    KEY_G,
+    KEY_H,
+    KEY_I,
+    KEY_J,
+    KEY_K,
+    KEY_L,
+    KEY_M,
+    KEY_N,
+    KEY_O,
+    KEY_P,
+    KEY_Q,
+    KEY_R,
+    KEY_S,
+    KEY_T,
+    KEY_U,
+    KEY_V,
+    KEY_W,
+    KEY_X,
+    KEY_Y,
+    KEY_Z,
+    KEY_LEFTBRACE,
+    KEY_BACKSLASH | FLAG_UPPERCASE,
+    KEY_RIGHTBRACE,
+    KEY_GRAVE | FLAG_UPPERCASE,
+};
 
 void cleanup_trie(struct trie *trie)
 {
@@ -64,14 +181,6 @@ void cleanup()
     close(vkeyboard_device);
 
     cleanup_trie(TRIE);
-    for (size_t i = 0; i < CACHE_KEY_SIZE; i++)
-    {
-        if (CACHE_KEY[i] == NULL)
-        {
-            continue;
-        }
-        free(CACHE_KEY[i]);
-    }
 }
 
 void wide_to_utf8(wchar_t *input, char *output)
@@ -140,7 +249,6 @@ void read_from_rc(char *path)
                 char *utf_value = malloc(utf8_value_len);
                 wide_to_utf8(key, utf_key);
                 wide_to_utf8(value, utf_value);
-                wprintf(L"%ls = %ls\n", key, value);
                 push_trie(utf_key, utf_value);
             }
         }
@@ -170,48 +278,28 @@ bool valid_key_code(size_t code)
 
 struct key get_key_from_char(char character)
 {
-    if (CACHE_KEY[(int)character]->character != '\0')
-    {
-        return *CACHE_KEY[(int)character];
-    }
     struct key key = {0};
     key.character = character;
-    for (size_t i = 0; i < READABLE_KEYS; i++)
+    key.is_shifted = false;
+    int position = (int)character - 1;
+    int keycode = char_codes[position];
+    if (keycode & FLAG_UPPERCASE)
     {
-        if (character == char_codes[i])
-        {
-            key.keycode = (size_t)key_codes[i];
-            key.is_shifted = false;
-            key.position = i;
-            memcpy(CACHE_KEY[(int)character], &key, sizeof(key));
-            return key;
-        }
-        if (character == shifted_char_codes[i])
-        {
-            key.keycode = (size_t)key_codes[i];
-            key.is_shifted = true;
-            key.position = i;
-            memcpy(CACHE_KEY[(int)character], &key, sizeof(key));
-            return key;
-        }
+        key.is_shifted = true;
+        keycode &= ~FLAG_UPPERCASE;
     }
-    exit(EINVCH);
+    key.keycode = keycode;
+    key.position = position;
+    return key;
 }
 
-char get_char_from_keycode(size_t keycode, bool is_shifted)
+int get_position_from_event_code(size_t event_code)
 {
     for (size_t i = 0; i < READABLE_KEYS; i++)
     {
-        if (key_codes[i] == keycode)
-        {
-            if (is_shifted)
-            {
-                return (char)shifted_char_codes[i];
-            }
-            return (char)char_codes[i];
-        }
+        if (char_codes[i] == (int)event_code)
+            return i;
     }
-    printf("Error finding keycode for character %zu\n", keycode);
     exit(EINVC);
 }
 
@@ -321,7 +409,7 @@ void push_trie(char *key, char *expansion)
     {
         char character = key[i];
         struct key key = get_key_from_char(character);
-        size_t position = key.position;
+        int position = key.position;
         if (current_trie->next[position] == NULL)
         {
             current_trie->next[position] = malloc(sizeof(struct trie));
@@ -353,7 +441,7 @@ void init_virtual_device(int vkeyboard_device)
         printf("Error adding key to virtual input : %d\n", KEY_BACKSPACE);
         exit(EADD);
     }
-    for (size_t i = 0; i < READABLE_KEYS; i++)
+    for (size_t i = 0; i < LINUX_KEYS; i++)
     {
         if ((status = ioctl(vkeyboard_device, UI_SET_KEYBIT, key_codes[i])) < 0)
         {
@@ -445,9 +533,12 @@ void keydogger_daemon()
             continue;
         }
 
-        char character = get_char_from_keycode(event.code, is_shifted);
-        struct key key = get_key_from_char(character);
-        size_t position = key.position;
+        int event_code;
+        if (is_shifted)
+            event_code = event.code | FLAG_UPPERCASE;
+        else
+            event_code = event.code;
+        int position = get_position_from_event_code((size_t)event_code);
 
         // if next doesnt match trigger, reset
         if (current_trie->next[position] == NULL)
@@ -458,7 +549,7 @@ void keydogger_daemon()
 
         struct trie *next = current_trie->next[position];
         // if next doesnt match trigger, reset
-        if (next->character != character || next->is_shifted != is_shifted)
+        if ((event_code ^ char_codes[position]) != 0)
         {
             current_trie = TRIE;
             continue;
@@ -640,7 +731,7 @@ int main(int argc, char *argv[])
 {
     if (argc < 2)
     {
-        printf("Usage error: keyloggerd start | stop | status | debug\n");
+        printf("Usage error: keydogger start | stop | status | debug | viz\n");
         exit(EUSAGE);
     }
 
@@ -659,7 +750,6 @@ int main(int argc, char *argv[])
             printf("Already running at pid %d\n", pid);
             exit(EXIT_SUCCESS);
         }
-        init_cache();
         read_from_rc(NULL);
         daemonize_keydogger();
     }
@@ -695,26 +785,23 @@ int main(int argc, char *argv[])
         {
             kill(pid, SIGTERM);
         }
-        init_cache();
         read_from_rc(DEBUG_RC_PATH);
         keydogger_daemon();
     }
     else if (strcmp(argv[1], "viz") == 0)
     {
-        init_cache();
         read_from_rc(DEBUG_RC_PATH);
         print_trie(TRIE, 0);
     }
     else if (strcmp(argv[1], "unicode") == 0)
     {
         setlocale(LC_ALL, "");
-        init_cache();
         read_from_rc(DEBUG_RC_PATH);
         keydogger_daemon();
     }
     else
     {
-        printf("Usage error: keyloggerd start | stop | status | debug\n");
+        printf("Usage error: keydogger start | stop | status | debug | viz\n");
         exit(EUSAGE);
     }
 }

@@ -6,9 +6,10 @@
 #define KEYDOGGER_H
 
 #define SLEEP_TIME 1000
-#define READABLE_KEYS 50
-#define CACHE_KEY_SIZE 256
-#define CACHE_CHAR_SIZE 64
+#define READABLE_KEYS 126
+#define LINUX_KEYS 50
+
+#define FLAG_UPPERCASE 512
 
 // Errors
 #define EOPEN 1  // Cannot open
@@ -91,117 +92,11 @@ static const size_t key_codes[] = {
     KEY_RIGHTSHIFT,
 };
 
-static const char char_codes[] = {
-    '1',
-    '2',
-    '3',
-    '4',
-    '5',
-    '6',
-    '7',
-    '8',
-    '9',
-    '0',
-    '-',
-    '=',
-    'q',
-    'w',
-    'e',
-    'r',
-    't',
-    'y',
-    'u',
-    'i',
-    'o',
-    'p',
-    '[',
-    ']',
-    'a',
-    's',
-    'd',
-    'f',
-    'g',
-    'h',
-    'j',
-    'k',
-    'l',
-    ';',
-    '\'',
-    '`',
-    '\\',
-    'z',
-    'x',
-    'c',
-    'v',
-    'b',
-    'n',
-    'm',
-    ',',
-    '.',
-    '/',
-    ' ',
-    '\0',
-    '\0',
-};
-
-static const int shifted_char_codes[] = {
-    '!',
-    '@',
-    '#',
-    '%',
-    '$',
-    '^',
-    '&',
-    '*',
-    '(',
-    ')',
-    '_',
-    '+',
-    'Q',
-    'W',
-    'E',
-    'R',
-    'T',
-    'Y',
-    'U',
-    'I',
-    'O',
-    'P',
-    '{',
-    '}',
-    'A',
-    'S',
-    'D',
-    'F',
-    'G',
-    'H',
-    'J',
-    'K',
-    'L',
-    ':',
-    '"',
-    '~',
-    '|',
-    'Z',
-    'X',
-    'C',
-    'V',
-    'B',
-    'N',
-    'M',
-    '<',
-    '>',
-    '?',
-    ' ',
-    '\0',
-    '\0',
-};
-
 struct trie
 {
     struct trie *next[READABLE_KEYS];
     char character;
-    size_t keycode;
+    int keycode;
     bool is_leaf;
     bool is_shifted;
     struct trie *parent;
@@ -211,9 +106,9 @@ struct trie
 
 struct key
 {
-    size_t position;
+    int position;
     char character;
-    size_t keycode;
+    int keycode;
     bool is_shifted;
 };
 
