@@ -181,14 +181,6 @@ void cleanup()
     close(vkeyboard_device);
 
     cleanup_trie(TRIE);
-    for (size_t i = 0; i < CACHE_KEY_SIZE; i++)
-    {
-        if (CACHE_KEY[i] == NULL)
-        {
-            continue;
-        }
-        free(CACHE_KEY[i]);
-    }
 }
 
 void wide_to_utf8(wchar_t *input, char *output)
