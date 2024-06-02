@@ -533,9 +533,12 @@ void keydogger_daemon()
             continue;
         }
 
-        char character = get_char_from_keycode(event.code, is_shifted);
-        struct key key = get_key_from_char(character);
-        size_t position = key.position;
+        int event_code;
+        if (is_shifted)
+            event_code = event.code | FLAG_UPPERCASE;
+        else
+            event_code = event.code;
+        int position = get_position_from_event_code((size_t)event_code);
 
         // if next doesnt match trigger, reset
         if (current_trie->next[position] == NULL)
@@ -546,7 +549,7 @@ void keydogger_daemon()
 
         struct trie *next = current_trie->next[position];
         // if next doesnt match trigger, reset
-        if (next->character != character || next->is_shifted != is_shifted)
+        if ((event_code ^ char_codes[position]) != 0)
         {
             current_trie = TRIE;
             continue;
