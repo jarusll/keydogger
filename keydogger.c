@@ -441,7 +441,7 @@ void init_virtual_device(int vkeyboard_device)
         printf("Error adding key to virtual input : %d\n", KEY_BACKSPACE);
         exit(EADD);
     }
-    for (size_t i = 0; i < READABLE_KEYS; i++)
+    for (size_t i = 0; i < LINUX_KEYS; i++)
     {
         if ((status = ioctl(vkeyboard_device, UI_SET_KEYBIT, key_codes[i])) < 0)
         {
