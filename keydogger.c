@@ -767,7 +767,6 @@ int main(int argc, char *argv[])
             printf("Already running at pid %d\n", pid);
             exit(EXIT_SUCCESS);
         }
-        init_cache();
         read_from_rc(NULL);
         daemonize_keydogger();
     }
@@ -803,20 +802,17 @@ int main(int argc, char *argv[])
         {
             kill(pid, SIGTERM);
         }
-        init_cache();
         read_from_rc(DEBUG_RC_PATH);
         keydogger_daemon();
     }
     else if (strcmp(argv[1], "viz") == 0)
     {
-        init_cache();
         read_from_rc(DEBUG_RC_PATH);
         print_trie(TRIE, 0);
     }
     else if (strcmp(argv[1], "unicode") == 0)
     {
         setlocale(LC_ALL, "");
-        init_cache();
         read_from_rc(DEBUG_RC_PATH);
         keydogger_daemon();
     }
