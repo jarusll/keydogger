@@ -95,7 +95,7 @@ struct trie
 {
     struct trie *next[READABLE_KEYS];
     char character;
-    size_t keycode;
+    int keycode;
     bool is_leaf;
     bool is_shifted;
     struct trie *parent;
@@ -105,9 +105,9 @@ struct trie
 
 struct key
 {
-    size_t position;
+    int position;
     char character;
-    size_t keycode;
+    int keycode;
     bool is_shifted;
 };
 
