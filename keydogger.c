@@ -409,7 +409,7 @@ void push_trie(char *key, char *expansion)
     {
         char character = key[i];
         struct key key = get_key_from_char(character);
-        size_t position = key.position;
+        int position = key.position;
         if (current_trie->next[position] == NULL)
         {
             current_trie->next[position] = malloc(sizeof(struct trie));
