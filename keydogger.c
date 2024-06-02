@@ -293,20 +293,13 @@ struct key get_key_from_char(char character)
     return key;
 }
 
-char get_char_from_keycode(size_t keycode, bool is_shifted)
+int get_position_from_event_code(size_t event_code)
 {
     for (size_t i = 0; i < READABLE_KEYS; i++)
     {
-        if (key_codes[i] == keycode)
-        {
-            if (is_shifted)
-            {
-                return (char)shifted_char_codes[i];
-            }
-            return (char)char_codes[i];
+        if (char_codes[i] == (int)event_code)
+            return i;
         }
-    }
-    printf("Error finding keycode for character %zu\n", keycode);
     exit(EINVC);
 }
 
