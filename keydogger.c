@@ -140,7 +140,6 @@ void read_from_rc(char *path)
                 char *utf_value = malloc(utf8_value_len);
                 wide_to_utf8(key, utf_key);
                 wide_to_utf8(value, utf_value);
-                wprintf(L"%ls = %ls\n", key, value);
                 push_trie(utf_key, utf_value);
             }
         }
