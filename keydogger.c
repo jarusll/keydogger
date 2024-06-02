@@ -278,10 +278,6 @@ bool valid_key_code(size_t code)
 
 struct key get_key_from_char(char character)
 {
-    if (CACHE_KEY[(int)character]->character != '\0')
-    {
-        return *CACHE_KEY[(int)character];
-    }
     struct key key = {0};
     key.character = character;
     for (size_t i = 0; i < READABLE_KEYS; i++)
