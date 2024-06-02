@@ -285,7 +285,7 @@ struct key get_key_from_char(char character)
     int keycode = char_codes[position];
     if (keycode & FLAG_UPPERCASE)
     {
-            key.is_shifted = true;
+        key.is_shifted = true;
         keycode &= ~FLAG_UPPERCASE;
     }
     key.keycode = keycode;
@@ -299,7 +299,7 @@ int get_position_from_event_code(size_t event_code)
     {
         if (char_codes[i] == (int)event_code)
             return i;
-        }
+    }
     exit(EINVC);
 }
 
@@ -731,7 +731,7 @@ int main(int argc, char *argv[])
 {
     if (argc < 2)
     {
-        printf("Usage error: keyloggerd start | stop | status | debug\n");
+        printf("Usage error: keydogger start | stop | status | debug | viz\n");
         exit(EUSAGE);
     }
 
@@ -801,7 +801,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-        printf("Usage error: keyloggerd start | stop | status | debug\n");
+        printf("Usage error: keydogger start | stop | status | debug | viz\n");
         exit(EUSAGE);
     }
 }
