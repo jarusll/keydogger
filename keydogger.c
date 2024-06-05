@@ -13,6 +13,7 @@
 #include <wchar.h>
 #include <locale.h>
 #include <iconv.h>
+#include <ctype.h>
 
 #define UTF8_SEQUENCE_MAXLEN 6
 #include "keydogger.h"
@@ -382,6 +383,29 @@ void send_shift_up()
 
 void send_to_keyboard(int device_fd, char *string)
 {
+    bool is_expansion_ascii = true;
+    for (size_t i = 0; i < strlen(string); i++)
+    {
+        if (!isascii(string[i]))
+            is_expansion_ascii = false;
+    }
+    if (is_expansion_ascii)
+    {
+        struct input_event event = {0};
+        event.type = EV_KEY;
+        for (size_t i = 0; i < strlen(string); i++)
+        {
+            struct key key = get_key_from_char(string[i]);
+            event.code = key.keycode;
+            event.value = 1;
+            send_key_to_device(vkeyboard_device, event);
+            event.value = 0;
+            send_key_to_device(vkeyboard_device, event);
+        }
+        send_sync(vkeyboard_device);
+        return;
+    }
+
     char command[256];
     snprintf(command, 256, "wl-copy %s", string);
     int status = system(command);
