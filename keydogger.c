@@ -27,6 +27,7 @@ char *DEBUG_RC_PATH = "./keydoggerrc";
 static int fkeyboard_device;
 static int vkeyboard_device;
 
+// Direct mapping of char codes to linux key codes
 static int char_codes[] = {
     // 0 -> 33
     -1,
@@ -234,6 +235,7 @@ void read_from_rc(char *path)
         printf("Error constructing config path %s\n", RC_PATH);
         exit(ESTR);
     }
+
     TRIE = malloc(sizeof(struct trie));
     init_trie(TRIE, NULL);
     if (path != NULL)
@@ -246,9 +248,11 @@ void read_from_rc(char *path)
         printf("Error opening %s\n", rc_file_path);
         exit(EOPEN);
     }
+
     wchar_t line[256];
     while (fgetws(line, sizeof(line), rc_file) != NULL)
     {
+        // Tokenize to get key=value
         wchar_t *state = NULL;
         wchar_t *key = wcstok(line, L"=", &state);
         if (key)
@@ -261,6 +265,7 @@ void read_from_rc(char *path)
                 {
                     *newline = L'\0';
                 }
+                // Convert wide strings to utf8
                 size_t wcs_key_len = (wcslen(key) + 1) * sizeof(wchar_t);
                 size_t utf8_key_len = (wcs_key_len + 1) * UTF8_SEQUENCE_MAXLEN;
                 char *utf_key = malloc(utf8_key_len);
@@ -306,6 +311,7 @@ struct key get_key_from_char(char character)
     if (keycode & FLAG_UPPERCASE)
     {
         key.is_shifted = true;
+        // subtract the flag to just get the keycode
         keycode &= ~FLAG_UPPERCASE;
     }
     key.keycode = keycode;
@@ -313,6 +319,7 @@ struct key get_key_from_char(char character)
     return key;
 }
 
+// TODO: make a hashtable or direct map event codes to char positions
 int get_position_from_event_code(size_t event_code)
 {
     for (size_t i = 0; i < READABLE_KEYS; i++)
@@ -392,15 +399,15 @@ void send_to_keyboard(int device_fd, char *string)
         .code = KEY_V,
         .value = 1};
     send_key_to_device(device_fd, control_event);
-        usleep(SLEEP_TIME);
-        send_sync(device_fd);
-        send_key_to_device(device_fd, v_event);
-        usleep(SLEEP_TIME);
-        send_sync(device_fd);
+    usleep(SLEEP_TIME);
+    send_sync(device_fd);
+    send_key_to_device(device_fd, v_event);
+    usleep(SLEEP_TIME);
+    send_sync(device_fd);
     control_event.value = 0;
-            send_key_to_device(device_fd, control_event);
-            usleep(SLEEP_TIME);
-        send_sync(device_fd);
+    send_key_to_device(device_fd, control_event);
+    usleep(SLEEP_TIME);
+    send_sync(device_fd);
     v_event.value = 0;
     send_key_to_device(device_fd, v_event);
     send_sync(device_fd);
@@ -586,9 +593,9 @@ void keydogger_daemon()
         // if next is terminal, expand it
         if (next->is_leaf)
         {
-                        send_backspace(vkeyboard_device, next->size);
+            send_backspace(vkeyboard_device, next->size);
             send_to_keyboard(vkeyboard_device, next->expansion);
-                        current_trie = TRIE;
+            current_trie = TRIE;
         }
         else
         {
@@ -725,6 +732,8 @@ int is_running()
 
 void print_trie(struct trie *trie, size_t level)
 {
+    if (level == 0)
+        printf("|");
     if (trie == NULL)
         return;
     for (size_t i = 0; i < level; i++)
@@ -748,7 +757,7 @@ void print_trie(struct trie *trie, size_t level)
 
 int main(int argc, char *argv[])
 {
-setlocale(LC_ALL, "");
+    setlocale(LC_ALL, "");
     set_environment();
     if (argc < 2)
     {
