@@ -28,6 +28,7 @@ sudo ./keydogger debug
 Set trigger and expansion values in `~/keydoggerrc`
 ```
 @hello=world
+@kiss=😙
 ```
 
 # Acknowledgements
