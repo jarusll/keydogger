@@ -373,33 +373,37 @@ void send_shift_up()
     send_key_to_device(vkeyboard_device, event);
 }
 
-void send_to_keyboard(int keyboard_device, char *string)
+void send_to_keyboard(int device_fd, char *string)
 {
-    size_t len = strlen(string);
-    struct input_event event = {0};
-    event.type = EV_KEY;
-    for (size_t i = 0; i < len; i++)
+    char command[256];
+    snprintf(command, 256, "wl-copy %s", string);
+    int status = system(command);
+    if (status < 0)
     {
-        char character = string[i];
-        struct key key = get_key_from_char(character);
-        event.code = key.keycode;
-        event.value = 1;
-        if (key.is_shifted)
-        {
-            send_shift_down();
-            usleep(SLEEP_TIME);
-        }
-        send_key_to_device(keyboard_device, event);
-        usleep(SLEEP_TIME);
-        event.value = 0;
-        send_key_to_device(keyboard_device, event);
-        usleep(SLEEP_TIME);
-        if (key.is_shifted)
-        {
-            send_shift_up();
-            usleep(SLEEP_TIME);
-        }
+        perror("system");
+        exit(ECOPY);
     }
+    struct input_event control_event = {
+        .type = EV_KEY,
+        .code = KEY_LEFTCTRL,
+        .value = 1};
+    struct input_event v_event = {
+        .type = EV_KEY,
+        .code = KEY_V,
+        .value = 1};
+    send_key_to_device(device_fd, control_event);
+        usleep(SLEEP_TIME);
+        send_sync(device_fd);
+        send_key_to_device(device_fd, v_event);
+        usleep(SLEEP_TIME);
+        send_sync(device_fd);
+    control_event.value = 0;
+            send_key_to_device(device_fd, control_event);
+            usleep(SLEEP_TIME);
+        send_sync(device_fd);
+    v_event.value = 0;
+    send_key_to_device(device_fd, v_event);
+    send_sync(device_fd);
 }
 
 void init_trie(struct trie *trie, struct key *key)
@@ -582,19 +586,9 @@ void keydogger_daemon()
         // if next is terminal, expand it
         if (next->is_leaf)
         {
-            // send key up event for last character from trigger
-            struct input_event event = {0};
-            event.code = next->keycode;
-            event.value = 0;
-            event.type = EV_KEY;
-
-            send_key_to_device(fkeyboard_device, event);
-            send_sync(fkeyboard_device);
-
-            send_backspace(vkeyboard_device, next->size);
+                        send_backspace(vkeyboard_device, next->size);
             send_to_keyboard(vkeyboard_device, next->expansion);
-            send_sync(vkeyboard_device);
-            current_trie = TRIE;
+                        current_trie = TRIE;
         }
         else
         {
