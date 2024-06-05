@@ -617,6 +617,9 @@ void keydogger_daemon()
         // if next is terminal, expand it
         if (next->is_leaf)
         {
+            event.value = 0;
+            send_key_to_device(fkeyboard_device, event);
+            send_sync(fkeyboard_device);
             send_backspace(vkeyboard_device, next->size);
             send_to_keyboard(vkeyboard_device, next->expansion);
             current_trie = TRIE;
