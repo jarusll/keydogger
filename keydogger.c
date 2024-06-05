@@ -748,6 +748,8 @@ void print_trie(struct trie *trie, size_t level)
 
 int main(int argc, char *argv[])
 {
+setlocale(LC_ALL, "");
+    set_environment();
     if (argc < 2)
     {
         printf("Usage error: keydogger start | stop | status | debug | viz\n");
