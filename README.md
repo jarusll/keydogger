@@ -1,7 +1,8 @@
 # Keydogger
-A zero dependency keyboard macro processor for Linux.
+A keyboard macro based on [wl-clipboard](https://github.com/bugaevc/wl-clipboard).
 
 # Prerequisites
+- `wl-clipboard`
 - `gcc`
 - `make`
 
@@ -28,18 +29,19 @@ sudo ./keydogger debug
 Set trigger and expansion values in `~/keydoggerrc`
 ```
 @hello=world
+@kiss=😙
 ```
 
 # Acknowledgements
 - [emisilve86](https://github.com/emisilve86/Keylogger-Daemon-Linux) for their code
 - [Arjun](https://github.com/uhrjun) for the name `Keydogger`
-- [Espanso](https://github.com/federico-terzi/espanso) for the `1000` microsends of delay between events
+- [Espanso](https://github.com/federico-terzi/espanso) for the `1000` microseconds of delay between events
 
 # TODO
 ## v1
 - [x] Daemonize it
-- [x] Use `/dev/uinput` to emit events
+- [ ] Use `/dev/uinput` to emit events(Expansions are now pasted using `Ctrl+V`)
 - [x] Read trigger & expansions from `.keydoggerrc`
 ## v2
 - [ ] On the fly toggle using magic keychords
-- [ ] Unicode support
+- [x] Unicode support

@@ -27,6 +27,7 @@ char *DEBUG_RC_PATH = "./keydoggerrc";
 static int fkeyboard_device;
 static int vkeyboard_device;
 
+// Direct mapping of char codes to linux key codes
 static int char_codes[] = {
     // 0 -> 33
     -1,
@@ -157,6 +158,26 @@ static int char_codes[] = {
     KEY_GRAVE | FLAG_UPPERCASE,
 };
 
+void set_environment()
+{
+    if (getenv("WAYLAND_DISPLAY") == NULL)
+    {
+        setenv("WAYLAND_DISPLAY", "wayland-0", 0);
+    }
+    if (getenv("XDG_RUNTIME_DIR") == NULL)
+    {
+        char *uid = getenv("SUDO_UID");
+        if (uid == NULL)
+        {
+            printf("Error getting current users uid");
+            exit(EUID);
+        }
+        char xdg_runtime_path[100];
+        snprintf(xdg_runtime_path, 100, "/run/user/%s", uid);
+        setenv("XDG_RUNTIME_DIR", xdg_runtime_path, 0);
+    }
+}
+
 void cleanup_trie(struct trie *trie)
 {
     if (trie == NULL)
@@ -214,6 +235,7 @@ void read_from_rc(char *path)
         printf("Error constructing config path %s\n", RC_PATH);
         exit(ESTR);
     }
+
     TRIE = malloc(sizeof(struct trie));
     init_trie(TRIE, NULL);
     if (path != NULL)
@@ -226,9 +248,11 @@ void read_from_rc(char *path)
         printf("Error opening %s\n", rc_file_path);
         exit(EOPEN);
     }
+
     wchar_t line[256];
     while (fgetws(line, sizeof(line), rc_file) != NULL)
     {
+        // Tokenize to get key=value
         wchar_t *state = NULL;
         wchar_t *key = wcstok(line, L"=", &state);
         if (key)
@@ -241,6 +265,7 @@ void read_from_rc(char *path)
                 {
                     *newline = L'\0';
                 }
+                // Convert wide strings to utf8
                 size_t wcs_key_len = (wcslen(key) + 1) * sizeof(wchar_t);
                 size_t utf8_key_len = (wcs_key_len + 1) * UTF8_SEQUENCE_MAXLEN;
                 char *utf_key = malloc(utf8_key_len);
@@ -286,6 +311,7 @@ struct key get_key_from_char(char character)
     if (keycode & FLAG_UPPERCASE)
     {
         key.is_shifted = true;
+        // subtract the flag to just get the keycode
         keycode &= ~FLAG_UPPERCASE;
     }
     key.keycode = keycode;
@@ -293,6 +319,7 @@ struct key get_key_from_char(char character)
     return key;
 }
 
+// TODO: make a hashtable or direct map event codes to char positions
 int get_position_from_event_code(size_t event_code)
 {
     for (size_t i = 0; i < READABLE_KEYS; i++)
@@ -353,33 +380,37 @@ void send_shift_up()
     send_key_to_device(vkeyboard_device, event);
 }
 
-void send_to_keyboard(int keyboard_device, char *string)
+void send_to_keyboard(int device_fd, char *string)
 {
-    size_t len = strlen(string);
-    struct input_event event = {0};
-    event.type = EV_KEY;
-    for (size_t i = 0; i < len; i++)
+    char command[256];
+    snprintf(command, 256, "wl-copy %s", string);
+    int status = system(command);
+    if (status < 0)
     {
-        char character = string[i];
-        struct key key = get_key_from_char(character);
-        event.code = key.keycode;
-        event.value = 1;
-        if (key.is_shifted)
-        {
-            send_shift_down();
-            usleep(SLEEP_TIME);
-        }
-        send_key_to_device(keyboard_device, event);
-        usleep(SLEEP_TIME);
-        event.value = 0;
-        send_key_to_device(keyboard_device, event);
-        usleep(SLEEP_TIME);
-        if (key.is_shifted)
-        {
-            send_shift_up();
-            usleep(SLEEP_TIME);
-        }
+        perror("system");
+        exit(ECOPY);
     }
+    struct input_event control_event = {
+        .type = EV_KEY,
+        .code = KEY_LEFTCTRL,
+        .value = 1};
+    struct input_event v_event = {
+        .type = EV_KEY,
+        .code = KEY_V,
+        .value = 1};
+    send_key_to_device(device_fd, control_event);
+    usleep(SLEEP_TIME);
+    send_sync(device_fd);
+    send_key_to_device(device_fd, v_event);
+    usleep(SLEEP_TIME);
+    send_sync(device_fd);
+    control_event.value = 0;
+    send_key_to_device(device_fd, control_event);
+    usleep(SLEEP_TIME);
+    send_sync(device_fd);
+    v_event.value = 0;
+    send_key_to_device(device_fd, v_event);
+    send_sync(device_fd);
 }
 
 void init_trie(struct trie *trie, struct key *key)
@@ -439,6 +470,11 @@ void init_virtual_device(int vkeyboard_device)
     if ((status = ioctl(vkeyboard_device, UI_SET_KEYBIT, KEY_BACKSPACE)) < 0)
     {
         printf("Error adding key to virtual input : %d\n", KEY_BACKSPACE);
+        exit(EADD);
+    }
+    if ((status = ioctl(vkeyboard_device, UI_SET_KEYBIT, KEY_LEFTCTRL)) < 0)
+    {
+        printf("Error adding key to virtual input : %d\n", KEY_LEFTCTRL);
         exit(EADD);
     }
     for (size_t i = 0; i < LINUX_KEYS; i++)
@@ -557,18 +593,8 @@ void keydogger_daemon()
         // if next is terminal, expand it
         if (next->is_leaf)
         {
-            // send key up event for last character from trigger
-            struct input_event event = {0};
-            event.code = next->keycode;
-            event.value = 0;
-            event.type = EV_KEY;
-
-            send_key_to_device(fkeyboard_device, event);
-            send_sync(fkeyboard_device);
-
             send_backspace(vkeyboard_device, next->size);
             send_to_keyboard(vkeyboard_device, next->expansion);
-            send_sync(vkeyboard_device);
             current_trie = TRIE;
         }
         else
@@ -706,6 +732,8 @@ int is_running()
 
 void print_trie(struct trie *trie, size_t level)
 {
+    if (level == 0)
+        printf("|");
     if (trie == NULL)
         return;
     for (size_t i = 0; i < level; i++)
@@ -729,6 +757,8 @@ void print_trie(struct trie *trie, size_t level)
 
 int main(int argc, char *argv[])
 {
+    setlocale(LC_ALL, "");
+    set_environment();
     if (argc < 2)
     {
         printf("Usage error: keydogger start | stop | status | debug | viz\n");
@@ -792,12 +822,6 @@ int main(int argc, char *argv[])
     {
         read_from_rc(DEBUG_RC_PATH);
         print_trie(TRIE, 0);
-    }
-    else if (strcmp(argv[1], "unicode") == 0)
-    {
-        setlocale(LC_ALL, "");
-        read_from_rc(DEBUG_RC_PATH);
-        keydogger_daemon();
     }
     else
     {
