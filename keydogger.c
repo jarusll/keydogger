@@ -814,12 +814,6 @@ setlocale(LC_ALL, "");
         read_from_rc(DEBUG_RC_PATH);
         print_trie(TRIE, 0);
     }
-    else if (strcmp(argv[1], "unicode") == 0)
-    {
-        setlocale(LC_ALL, "");
-        read_from_rc(DEBUG_RC_PATH);
-        keydogger_daemon();
-    }
     else
     {
         printf("Usage error: keydogger start | stop | status | debug | viz\n");
