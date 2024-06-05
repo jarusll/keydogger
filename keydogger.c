@@ -157,6 +157,26 @@ static int char_codes[] = {
     KEY_GRAVE | FLAG_UPPERCASE,
 };
 
+void set_environment()
+{
+    if (getenv("WAYLAND_DISPLAY") == NULL)
+    {
+        setenv("WAYLAND_DISPLAY", "wayland-0", 0);
+    }
+    if (getenv("XDG_RUNTIME_DIR") == NULL)
+    {
+        char *uid = getenv("SUDO_UID");
+        if (uid == NULL)
+        {
+            printf("Error getting current users uid");
+            exit(EUID);
+        }
+        char xdg_runtime_path[100];
+        snprintf(xdg_runtime_path, 100, "/run/user/%s", uid);
+        setenv("XDG_RUNTIME_DIR", xdg_runtime_path, 0);
+    }
+}
+
 void cleanup_trie(struct trie *trie)
 {
     if (trie == NULL)
