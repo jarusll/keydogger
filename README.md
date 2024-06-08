@@ -45,5 +45,4 @@ Set trigger and expansion values in `~/keydoggerrc`
 - [x] Use `/dev/uinput` to emit events
 - [x] Read trigger & expansions from `.keydoggerrc`
 ## v2
-- [ ] On the fly toggle using magic keychords
 - [x] Unicode support
