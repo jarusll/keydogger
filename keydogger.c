@@ -29,7 +29,7 @@ static int fkeyboard_device;
 static int vkeyboard_device;
 
 // Direct mapping of char codes to linux key codes
-static int char_codes[] = {
+static int char_codes_to_key_codes[] = {
     // 0 -> 33
     -1,
     -1,
@@ -308,7 +308,7 @@ struct key get_key_from_char(char character)
     key.character = character;
     key.is_shifted = false;
     int position = (int)character - 1;
-    int keycode = char_codes[position];
+    int keycode = char_codes_to_key_codes[position];
     if (keycode & FLAG_UPPERCASE)
     {
         key.is_shifted = true;
@@ -617,7 +617,7 @@ void keydogger_daemon()
 
         struct trie *next = current_trie->next[position];
         // if next doesnt match trigger, reset
-        if ((event_code ^ char_codes[position]) != 0)
+        if ((event_code ^ char_codes_to_key_codes[position]) != 0)
         {
             current_trie = TRIE;
             continue;
