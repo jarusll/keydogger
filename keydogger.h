@@ -9,7 +9,9 @@
 #define READABLE_KEYS 126
 #define LINUX_KEYS 50
 
-#define FLAG_UPPERCASE 512
+#define MAX_KEY_CODE 181
+
+#define FLAG_UPPERCASE 128
 
 // Errors
 #define EOPEN 1  // Cannot open
