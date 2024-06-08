@@ -443,6 +443,7 @@ void send_backspace(int device_fd, size_t n)
         send_key_to_device(device_fd, event);
         event.value = 0;
         send_key_to_device(device_fd, event);
+        send_sync(device_fd);
     }
 }
 
