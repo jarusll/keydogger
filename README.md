@@ -40,7 +40,7 @@ Set trigger and expansion values in `~/keydoggerrc`
 # TODO
 ## v1
 - [x] Daemonize it
-- [ ] Use `/dev/uinput` to emit events(Expansions are now pasted using `Ctrl+V`)
+- [x] Use `/dev/uinput` to emit events
 - [x] Read trigger & expansions from `.keydoggerrc`
 ## v2
 - [ ] On the fly toggle using magic keychords
