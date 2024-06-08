@@ -363,22 +363,24 @@ void send_sync(int device_fd)
     send_key_to_device(device_fd, event);
 }
 
-void send_shift_down()
+void send_shift_down(int device_fd)
 {
     struct input_event event = {0};
     event.type = EV_KEY;
     event.code = KEY_LEFTSHIFT;
     event.value = 1;
-    send_key_to_device(vkeyboard_device, event);
+    send_key_to_device(device_fd, event);
+    usleep(SLEEP_TIME);
 }
 
-void send_shift_up()
+void send_shift_up(int device_fd)
 {
     struct input_event event = {0};
     event.type = EV_KEY;
     event.code = KEY_LEFTSHIFT;
     event.value = 0;
-    send_key_to_device(vkeyboard_device, event);
+    send_key_to_device(device_fd, event);
+    usleep(SLEEP_TIME);
 }
 
 void send_to_keyboard(int device_fd, char *string)
@@ -399,14 +401,14 @@ void send_to_keyboard(int device_fd, char *string)
             event.code = key.keycode;
             event.value = 1;
             if (key.is_shifted)
-                send_shift_down();
+                send_shift_down(vkeyboard_device);
             send_key_to_device(vkeyboard_device, event);
             usleep(SLEEP_TIME);
             event.value = 0;
             send_key_to_device(vkeyboard_device, event);
             usleep(SLEEP_TIME);
             if (key.is_shifted)
-                send_shift_up();
+                send_shift_up(vkeyboard_device);
         }
         send_sync(vkeyboard_device);
         return;
