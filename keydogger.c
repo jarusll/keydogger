@@ -398,13 +398,13 @@ void send_to_keyboard(int device_fd, char *string)
             struct key key = get_key_from_char(string[i]);
             event.code = key.keycode;
             event.value = 1;
-if (key.is_shifted)
+            if (key.is_shifted)
                 send_shift_down();
             send_key_to_device(vkeyboard_device, event);
-usleep(SLEEP_TIME);
+            usleep(SLEEP_TIME);
             event.value = 0;
             send_key_to_device(vkeyboard_device, event);
-usleep(SLEEP_TIME);
+            usleep(SLEEP_TIME);
             if (key.is_shifted)
                 send_shift_up();
         }
@@ -623,11 +623,22 @@ void keydogger_daemon()
         // if next is terminal, expand it
         if (next->is_leaf)
         {
+            // release trigger keys
             event.value = 0;
             send_key_to_device(fkeyboard_device, event);
+            if (is_shifted)
+            {
+                event.code = KEY_LEFTSHIFT;
+                send_key_to_device(fkeyboard_device, event);
+                event.code = KEY_RIGHTSHIFT;
+                send_key_to_device(fkeyboard_device, event);
+            }
             send_sync(fkeyboard_device);
+
             send_backspace(vkeyboard_device, next->size);
             send_to_keyboard(vkeyboard_device, next->expansion);
+
+            // Reset trie head
             current_trie = TRIE;
         }
         else
