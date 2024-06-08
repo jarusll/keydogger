@@ -159,6 +159,108 @@ static int char_codes_to_key_codes[] = {
     KEY_GRAVE | FLAG_UPPERCASE,
 };
 
+static int key_codes_to_position[MAX_KEY_CODE];
+
+void init_positions()
+{
+    memset(key_codes_to_position, -1, sizeof(key_codes_to_position));
+    key_codes_to_position[KEY_SPACE] = 31;
+    key_codes_to_position[KEY_1 | FLAG_UPPERCASE] = 32;
+    key_codes_to_position[KEY_APOSTROPHE | FLAG_UPPERCASE] = 33;
+    key_codes_to_position[KEY_3 | FLAG_UPPERCASE] = 34;
+    key_codes_to_position[KEY_4 | FLAG_UPPERCASE] = 35;
+    key_codes_to_position[KEY_5 | FLAG_UPPERCASE] = 36;
+    key_codes_to_position[KEY_7 | FLAG_UPPERCASE] = 37;
+    key_codes_to_position[KEY_APOSTROPHE] = 38;
+    key_codes_to_position[KEY_9 | FLAG_UPPERCASE] = 39;
+    key_codes_to_position[KEY_0 | FLAG_UPPERCASE] = 40;
+    key_codes_to_position[KEY_8 | FLAG_UPPERCASE] = 41;
+    key_codes_to_position[KEY_EQUAL | FLAG_UPPERCASE] = 42;
+    key_codes_to_position[KEY_COMMA] = 43;
+    key_codes_to_position[KEY_MINUS] = 44;
+    key_codes_to_position[KEY_DOT] = 45;
+    key_codes_to_position[KEY_SLASH] = 46;
+    key_codes_to_position[KEY_0] = 47;
+    key_codes_to_position[KEY_1] = 48;
+    key_codes_to_position[KEY_2] = 49;
+    key_codes_to_position[KEY_3] = 50;
+    key_codes_to_position[KEY_4] = 51;
+    key_codes_to_position[KEY_5] = 52;
+    key_codes_to_position[KEY_6] = 53;
+    key_codes_to_position[KEY_7] = 54;
+    key_codes_to_position[KEY_8] = 55;
+    key_codes_to_position[KEY_9] = 56;
+    key_codes_to_position[KEY_SEMICOLON | FLAG_UPPERCASE] = 57;
+    key_codes_to_position[KEY_SEMICOLON] = 58;
+    key_codes_to_position[KEY_COMMA | FLAG_UPPERCASE] = 59;
+    key_codes_to_position[KEY_EQUAL] = 60;
+    key_codes_to_position[KEY_DOT | FLAG_UPPERCASE] = 61;
+    key_codes_to_position[KEY_SLASH | FLAG_UPPERCASE] = 62;
+    key_codes_to_position[KEY_2 | FLAG_UPPERCASE] = 63;
+    key_codes_to_position[KEY_A | FLAG_UPPERCASE] = 64;
+    key_codes_to_position[KEY_B | FLAG_UPPERCASE] = 65;
+    key_codes_to_position[KEY_C | FLAG_UPPERCASE] = 66;
+    key_codes_to_position[KEY_D | FLAG_UPPERCASE] = 67;
+    key_codes_to_position[KEY_E | FLAG_UPPERCASE] = 68;
+    key_codes_to_position[KEY_F | FLAG_UPPERCASE] = 69;
+    key_codes_to_position[KEY_G | FLAG_UPPERCASE] = 70;
+    key_codes_to_position[KEY_H | FLAG_UPPERCASE] = 71;
+    key_codes_to_position[KEY_I | FLAG_UPPERCASE] = 72;
+    key_codes_to_position[KEY_J | FLAG_UPPERCASE] = 73;
+    key_codes_to_position[KEY_K | FLAG_UPPERCASE] = 74;
+    key_codes_to_position[KEY_L | FLAG_UPPERCASE] = 75;
+    key_codes_to_position[KEY_M | FLAG_UPPERCASE] = 76;
+    key_codes_to_position[KEY_N | FLAG_UPPERCASE] = 77;
+    key_codes_to_position[KEY_O | FLAG_UPPERCASE] = 78;
+    key_codes_to_position[KEY_P | FLAG_UPPERCASE] = 79;
+    key_codes_to_position[KEY_Q | FLAG_UPPERCASE] = 80;
+    key_codes_to_position[KEY_R | FLAG_UPPERCASE] = 81;
+    key_codes_to_position[KEY_S | FLAG_UPPERCASE] = 82;
+    key_codes_to_position[KEY_T | FLAG_UPPERCASE] = 83;
+    key_codes_to_position[KEY_U | FLAG_UPPERCASE] = 84;
+    key_codes_to_position[KEY_V | FLAG_UPPERCASE] = 85;
+    key_codes_to_position[KEY_W | FLAG_UPPERCASE] = 86;
+    key_codes_to_position[KEY_X | FLAG_UPPERCASE] = 87;
+    key_codes_to_position[KEY_Y | FLAG_UPPERCASE] = 88;
+    key_codes_to_position[KEY_Z | FLAG_UPPERCASE] = 89;
+    key_codes_to_position[KEY_LEFTBRACE] = 90;
+    key_codes_to_position[KEY_BACKSLASH] = 91;
+    key_codes_to_position[KEY_RIGHTBRACE] = 92;
+    key_codes_to_position[KEY_6 | FLAG_UPPERCASE] = 93;
+    key_codes_to_position[KEY_MINUS | FLAG_UPPERCASE] = 94;
+    key_codes_to_position[KEY_GRAVE] = 95;
+    key_codes_to_position[KEY_A] = 96;
+    key_codes_to_position[KEY_B] = 97;
+    key_codes_to_position[KEY_C] = 98;
+    key_codes_to_position[KEY_D] = 99;
+    key_codes_to_position[KEY_E] = 100;
+    key_codes_to_position[KEY_F] = 101;
+    key_codes_to_position[KEY_G] = 102;
+    key_codes_to_position[KEY_H] = 103;
+    key_codes_to_position[KEY_I] = 104;
+    key_codes_to_position[KEY_J] = 105;
+    key_codes_to_position[KEY_K] = 106;
+    key_codes_to_position[KEY_L] = 107;
+    key_codes_to_position[KEY_M] = 108;
+    key_codes_to_position[KEY_N] = 109;
+    key_codes_to_position[KEY_O] = 110;
+    key_codes_to_position[KEY_P] = 111;
+    key_codes_to_position[KEY_Q] = 112;
+    key_codes_to_position[KEY_R] = 113;
+    key_codes_to_position[KEY_S] = 114;
+    key_codes_to_position[KEY_T] = 115;
+    key_codes_to_position[KEY_U] = 116;
+    key_codes_to_position[KEY_V] = 117;
+    key_codes_to_position[KEY_W] = 118;
+    key_codes_to_position[KEY_X] = 119;
+    key_codes_to_position[KEY_Y] = 120;
+    key_codes_to_position[KEY_Z] = 121;
+    key_codes_to_position[KEY_LEFTBRACE | FLAG_UPPERCASE] = 122;
+    key_codes_to_position[KEY_BACKSLASH | FLAG_UPPERCASE] = 123;
+    key_codes_to_position[KEY_RIGHTBRACE | FLAG_UPPERCASE] = 124;
+    key_codes_to_position[KEY_GRAVE | FLAG_UPPERCASE] = 125;
+}
+
 void set_environment()
 {
     if (getenv("WAYLAND_DISPLAY") == NULL)
@@ -318,17 +420,6 @@ struct key get_key_from_char(char character)
     key.keycode = keycode;
     key.position = position;
     return key;
-}
-
-// TODO: make a hashtable or direct map event codes to char positions
-int get_position_from_event_code(size_t event_code)
-{
-    for (size_t i = 0; i < READABLE_KEYS; i++)
-    {
-        if (char_codes[i] == (int)event_code)
-            return i;
-    }
-    exit(EINVC);
 }
 
 void send_key_to_device(int keyboard_device, struct input_event event)
@@ -554,6 +645,9 @@ void keydogger_daemon()
     }
 
     init_virtual_device(vkeyboard_device);
+
+    init_positions();
+
     struct input_event event = {0};
     struct trie *current_trie = TRIE;
     while (1)
