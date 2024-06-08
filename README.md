@@ -1,4 +1,7 @@
 # Keydogger
+
+![Demo](./demo.gif)
+
 A keyboard macro based on [wl-clipboard](https://github.com/bugaevc/wl-clipboard).
 
 # Prerequisites
