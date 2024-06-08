@@ -398,9 +398,15 @@ void send_to_keyboard(int device_fd, char *string)
             struct key key = get_key_from_char(string[i]);
             event.code = key.keycode;
             event.value = 1;
+if (key.is_shifted)
+                send_shift_down();
             send_key_to_device(vkeyboard_device, event);
+usleep(SLEEP_TIME);
             event.value = 0;
             send_key_to_device(vkeyboard_device, event);
+usleep(SLEEP_TIME);
+            if (key.is_shifted)
+                send_shift_up();
         }
         send_sync(vkeyboard_device);
         return;
