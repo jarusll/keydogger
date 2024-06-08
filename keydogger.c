@@ -700,7 +700,7 @@ void keydogger_daemon()
             event_code = event.code | FLAG_UPPERCASE;
         else
             event_code = event.code;
-        int position = get_position_from_event_code((size_t)event_code);
+        int position = key_codes_to_position[event_code];
 
         // if next doesnt match trigger, reset
         if (current_trie->next[position] == NULL)
