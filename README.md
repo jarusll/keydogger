@@ -7,7 +7,7 @@ A keyboard macro based on [wl-clipboard](https://github.com/bugaevc/wl-clipboard
 - `make`
 
 # Installation
-```
+```bash
 git clone https://github.com/jarusll/keydogger.git
 cd keydogger
 ```
@@ -15,13 +15,14 @@ cd keydogger
 Configure `KEYBOARD_EVENT_PATH` in `Makefile`. Can use `evtest` to find out keyboard input device.
 
 To install, run the following as sudo
-```
+```bash
 make clean install
 ```
 
 # Testing
 You can play with macros using the local `keydoggerrc` file by
-```
+```bash
+make clean build
 sudo ./keydogger debug
 ```
 
@@ -29,7 +30,8 @@ sudo ./keydogger debug
 Set trigger and expansion values in `~/keydoggerrc`
 ```
 @hello=world
-@kiss=😙
+:kiss:=😙
+@truth=Open source is nice and Keydogger can inject this line as keypresses.
 ```
 
 # Acknowledgements
