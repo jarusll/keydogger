@@ -4,6 +4,9 @@
 
 A keyboard macro based on [wl-clipboard](https://github.com/bugaevc/wl-clipboard).
 
+# Working
+If all the expanded characters are ascii, key presses are sent. If not, `Ctrl-V` is sent.
+
 # Prerequisites
 - `wl-clipboard`
 - `gcc`
