@@ -1,7 +1,9 @@
 # Keydogger
-Keylogger but funnier
+*Keylogger but funnier*
 
-Keydogger is a tiny text expander written in C
+![Demo](./demo.gif)
+
+> Keydogger is a tiny text expander written in C
 
 ## Prerequisites
 - `wl-clipboard`
