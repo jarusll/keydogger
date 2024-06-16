@@ -37,7 +37,9 @@ sudo ./keydogger debug
 ## Usage
 
 ### Configuring expansions
-Set trigger and expansion values in `~/keydoggerrc`
+Set trigger and expansion values in `~/keydoggerrc`. Expansion definitions follow the format `trigger=expansion`.
+
+Here are some sample expansions you might like
 ```
 @hello=Hello, World!
 @program=Keydogger
