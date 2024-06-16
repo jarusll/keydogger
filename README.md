@@ -37,9 +37,16 @@ sudo ./keydogger debug
 ### Configuring expansions
 Set trigger and expansion values in `~/keydoggerrc`
 ```
-@hello=world
-:kiss:=😙
-@truth=Open source is nice and Keydogger can inject this line as keypresses.
+@hello=Hello, World!
+@program=Keydogger
+:love:=❤️
+@gg=Good game folks, see you tomorrow
+@@=jarusll@the-mail.net
+:ai=explain in short and simple terms
+@install=sudo package-manager install -y
+@update=sudo package-manager update -y
+@restart=sudo keydogger stop && sudo keydogger start
+@backup=rsync -avz ~/important_files/ jarusll@homeserver:backups/
 ```
 
 ### Start the daemon
@@ -47,12 +54,12 @@ Set trigger and expansion values in `~/keydoggerrc`
 sudo keydogger start
 ```
 
-### Query status
+### Query the daemon status
 ```bash
 sudo keydogger status
 ```
 
-### Query status
+### Stop the daemon
 ```bash
 sudo keydogger stop
 ```
