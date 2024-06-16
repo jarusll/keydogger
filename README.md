@@ -42,7 +42,6 @@ Set trigger and expansion values in `~/keydoggerrc`
 
 # Acknowledgements
 - [emisilve86](https://github.com/emisilve86/Keylogger-Daemon-Linux) for their code
-- [Arjun](https://github.com/uhrjun) for the name `Keydogger`
 - [Espanso](https://github.com/federico-terzi/espanso) for the `1000` microseconds of delay between events
 
 # TODO
