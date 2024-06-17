@@ -121,7 +121,7 @@ void cleanup_trie(struct trie *trie);
 void cleanup();
 void read_from_rc(char *path);
 bool check_priveleges();
-bool valid_key_code(size_t code);
+bool is_supported_key_code(size_t code);
 char get_char_from_keycode(size_t keycode, bool is_shifted);
 // very unusual error, mismatch between def and impl
 // inline void send_key_to_device(int keyboard_device, struct input_event event);

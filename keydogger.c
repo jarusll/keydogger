@@ -161,7 +161,7 @@ static int char_codes_to_key_codes[] = {
 
 static int key_codes_to_position[MAX_KEY_CODE];
 
-void init_positions()
+void init_key_to_char_map()
 {
     memset(key_codes_to_position, -1, sizeof(key_codes_to_position));
     key_codes_to_position[KEY_SPACE] = 31;
@@ -261,7 +261,7 @@ void init_positions()
     key_codes_to_position[KEY_GRAVE | FLAG_UPPERCASE] = 125;
 }
 
-void set_environment()
+void set_env_vars()
 {
     if (getenv("WAYLAND_DISPLAY") == NULL)
     {
@@ -384,7 +384,7 @@ void read_from_rc(char *path)
     fclose(rc_file);
 }
 
-bool valid_key_code(size_t code)
+bool is_supported_key_code(size_t code)
 {
     // 2 -> 13 = 1 -> =
     if (code >= KEY_1 && code <= KEY_EQUAL)
@@ -647,7 +647,7 @@ void keydogger_daemon()
 
     init_virtual_device(vkeyboard_device);
 
-    init_positions();
+    init_key_to_char_map();
 
     struct input_event event = {0};
     struct trie *current_trie = TRIE;
@@ -665,7 +665,7 @@ void keydogger_daemon()
             continue;
         }
         // ignore if keydogger doesnt recognize the key
-        if (valid_key_code(event.code) == false)
+        if (is_supported_key_code(event.code) == false)
         {
             continue;
         }
@@ -899,7 +899,7 @@ void print_trie(struct trie *trie, size_t level)
 int main(int argc, char *argv[])
 {
     setlocale(LC_ALL, "");
-    set_environment();
+    set_env_vars();
     if (argc < 2)
     {
         printf("Usage error: keydogger start | stop | status | debug | viz\n");
