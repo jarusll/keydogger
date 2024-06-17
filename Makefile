@@ -6,13 +6,16 @@ DAEMON_NAME=keydoggerd
 PREFIX=/usr/local/bin/
 CALLGRIND_FILE=benchmark.out
 
+.PHONY: build
+build: keydogger.h keydogger.c
+	gcc -DKEYBOARD_EVENT_PATH=\"$(KEYBOARD_EVENT_PATH)\" -DDAEMON_NAME=\"$(DAEMON_NAME)\" -w keydogger.c -o keydogger
+
+.PHONY: dev
 dev: keydogger.o
 	touch keydoggerrc
 	gcc -g -o keydogger keydogger.o
 
-build: keydogger.h keydogger.c
-	gcc -DKEYBOARD_EVENT_PATH=\"$(KEYBOARD_EVENT_PATH)\" -DDAEMON_NAME=\"$(DAEMON_NAME)\" -w keydogger.c -o keydogger
-
+.PHONY: install
 install: build
 	mkdir -p $(PREFIX)
 	mv keydogger $(PREFIX)
