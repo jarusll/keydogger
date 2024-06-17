@@ -14,9 +14,9 @@ build: keydogger.h keydogger.c dependency-check
 .PHONY: dependency-check
 dependency-check:
 	@if which $(DEPENDENCIES) >/dev/null 2>&1; then \
-		echo "Dependency missing: wl-clipboard"; \
-	else \
 		echo "Dependency found: wl-clipboard"; \
+	else \
+		echo "ERROR: Dependency missing: wl-clipboard"; \
 	fi
 
 .PHONY: dev
