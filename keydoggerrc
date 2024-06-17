@@ -1,3 +1,10 @@
-@hello=world
-:kiss:=😙
-@truth=Open source is nice and Keydogger can inject this line as keypresses.
+@hello=Hello, World!
+@program=Keydogger
+:love:=❤️
+@gg=Good game folks, see you tomorrow
+@@=jarusll@the-mail.net
+:ai=explain in short and simple terms
+@install=sudo package-manager install -y
+@update=sudo package-manager update -y
+@restart=sudo keydogger stop && sudo keydogger start
+@backup=rsync -avz ~/important_files/ jarusll@homeserver:backups/
