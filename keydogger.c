@@ -320,6 +320,7 @@ void wide_to_utf8(wchar_t *input, char *output)
         wprintf(L"Error converting wchar string to utf8 - %ls\n", input);
         exit(ECVRT);
     }
+    iconv_close(cd);
 }
 
 void read_from_rc(char *path)
