@@ -301,8 +301,8 @@ void cleanup_trie(struct trie *trie)
 void cleanup()
 {
     close(fkeyboard_device);
-    ioctl(vkeyboard_device, UI_DEV_DESTROY);
     close(vkeyboard_device);
+    ioctl(vkeyboard_device, UI_DEV_DESTROY);
 
     cleanup_trie(TRIE);
 }
