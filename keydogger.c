@@ -629,8 +629,31 @@ void init_virtual_device(int vkeyboard_device)
     };
 }
 
+void signal_cleanup_handler(int sig __attribute__((unused)))
+{
+    cleanup();
+    exit(0);
+}
+
 void keydogger_daemon()
 {
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = signal_cleanup_handler;
+    sigfillset(&sa.sa_mask); // Block all signals during handler execution
+
+    if (sigaction(SIGINT, &sa, NULL) == -1)
+    {
+        printf("Error cleaning up for SIGINT\n");
+        exit(ECLEAN);
+    }
+
+    if (sigaction(SIGTERM, &sa, NULL) == -1)
+    {
+        printf("Error cleaning up for SIGTERM\n");
+        exit(ECLEAN);
+    }
+
     fkeyboard_device = open(KEYBOARD_DEVICE, O_RDWR | O_APPEND, NULL);
     bool is_shifted = false;
 

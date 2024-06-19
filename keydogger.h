@@ -39,6 +39,7 @@
 #define ECOPY 23
 #define EUID 24
 #define EPASTE 25
+#define ECLEAN 26
 
 #define RC_PATH "keydoggerrc"
 #define UINPUT_PATH "/dev/uinput"
