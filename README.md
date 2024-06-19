@@ -5,6 +5,9 @@
 
 > Keydogger is a tiny text expander written in C
 
+> [!WARNING]
+> This is a privileged application. Hence it NEEDS sudo privileges. I have tried to keep the codebase small to reduce the footprint
+
 ## Prerequisites
 - `wl-clipboard`
 - `gcc`
