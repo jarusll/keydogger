@@ -312,10 +312,8 @@ void wide_to_utf8(wchar_t *input, char *output)
     iconv_t cd = iconv_open("UTF-8", "WCHAR_T");
     size_t wcs_len = (wcslen(input) + 1) * sizeof(wchar_t);
     size_t utf8_len = (wcs_len + 1) * UTF8_SEQUENCE_MAXLEN;
-    char *utf8_buffer = malloc(utf8_len + 1);
     char **inbuf = (char **)&input;
     char **outbuf = (char **)&output;
-    utf8_buffer[utf8_len] = '\0';
     size_t ret = iconv(cd, inbuf, &wcs_len, outbuf, &utf8_len);
     if (ret == (size_t)-1)
     {
