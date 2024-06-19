@@ -38,7 +38,7 @@ debug: dev
 
 .PHONY: memcheck
 memcheck: dev
-	sudo valgrind --tool=memcheck ./keydogger debug
+	sudo valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all ./keydogger debug
 
 .PHONY: benchmark
 benchmark: dev
