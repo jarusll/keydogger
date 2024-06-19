@@ -161,7 +161,7 @@ static int char_codes_to_key_codes[] = {
 
 static int key_codes_to_position[MAX_KEY_CODE];
 
-void init_key_to_char_map()
+void init_key_to_position_map()
 {
     memset(key_codes_to_position, -1, sizeof(key_codes_to_position));
     key_codes_to_position[KEY_SPACE] = 31;
@@ -647,7 +647,7 @@ void keydogger_daemon()
 
     init_virtual_device(vkeyboard_device);
 
-    init_key_to_char_map();
+    init_key_to_position_map();
 
     struct input_event event = {0};
     struct trie *current_trie = TRIE;
