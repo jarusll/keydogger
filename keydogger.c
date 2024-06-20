@@ -818,7 +818,7 @@ void daemonize_keydogger()
     keydogger_daemon();
 }
 
-bool check_priveleges()
+bool check_privileges()
 {
     if (environ == NULL)
     {
@@ -848,7 +848,7 @@ int is_running()
     pid_t pid;
     if (items_read < 0)
     {
-        printf("Could not retrive process\n");
+        printf("Could not retrieve process\n");
         exit(EPGREP);
     }
     if (items_read > 50)
@@ -906,9 +906,9 @@ int main(int argc, char *argv[])
         exit(EUSAGE);
     }
 
-    if (!check_priveleges())
+    if (!check_privileges())
     {
-        printf("Need sudo priveleges\n");
+        printf("Need sudo privileges\n");
         exit(EPERM);
     }
 
