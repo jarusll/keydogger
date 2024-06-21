@@ -357,7 +357,7 @@ void read_from_rc(char *path)
         exit(EOPEN);
     }
 
-    wchar_t line[256];
+    wchar_t line[100];
     while (fgetws(line, sizeof(line), rc_file) != NULL)
     {
         // Tokenize to get key=value
@@ -369,6 +369,11 @@ void read_from_rc(char *path)
             if (value)
             {
                 wchar_t *newline = wcschr(value, L'\n');
+                // Handle overflow
+                if (newline == NULL){
+                    wprintf(L"Trigger & Expansion pair too long for trigger = %ls\n", key);
+                    exit(EOVER);
+                }
                 if (newline)
                 {
                     *newline = L'\0';

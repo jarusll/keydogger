@@ -40,6 +40,7 @@
 #define EUID 24
 #define EPASTE 25
 #define ECLEAN 26
+#define EOVER 27
 
 #define RC_PATH "keydoggerrc"
 #define UINPUT_PATH "/dev/uinput"
