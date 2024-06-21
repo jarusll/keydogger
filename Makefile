@@ -1,6 +1,5 @@
-# Configure start
-KEYBOARD_EVENT_PATH=/dev/input/event2
-# Configure end
+# For development only
+KEYDOGGER_KEYBOARD=/dev/input/event2
 
 DEPENDENCIES=wl-copy wl-paste
 DAEMON_NAME=keydoggerd
@@ -21,7 +20,7 @@ dependency-check:
 
 .PHONY: dev
 dev: keydogger.h keydogger.c dependency-check
-	gcc -DDEBUG_MODE=1 -DKEYBOARD_EVENT_PATH=\"$(KEYBOARD_EVENT_PATH)\" -DDAEMON_NAME=\"$(DAEMON_NAME)\" -g -O0 keydogger.c -o keydogger -Wall  -Wextra -Wpedantic -Wsign-conversion -Wimplicit-function-declaration -Warray-bounds
+	gcc -DDEBUG_MODE=1 -DKEYDOGGER_KEYBOARD=\"$(KEYDOGGER_KEYBOARD)\" -DDAEMON_NAME=\"$(DAEMON_NAME)\" -g -O0 keydogger.c -o keydogger -Wall  -Wextra -Wpedantic -Wsign-conversion -Wimplicit-function-declaration -Warray-bounds
 
 .PHONY: install
 install: build
