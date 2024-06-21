@@ -963,6 +963,7 @@ int main(int argc, char *argv[])
             printf("Already running at pid %d\n", pid);
             exit(EXIT_SUCCESS);
         }
+        read_keyboard_env();
         read_from_rc(NULL);
         daemonize_keydogger();
     }
@@ -992,12 +993,28 @@ int main(int argc, char *argv[])
         }
         exit(EXIT_SUCCESS);
     }
+    else if (strcmp(argv[1], "restart") == 0)
+    {
+        if (pid > 0)
+        {
+            cleanup();
+            int kill_status = kill(pid, SIGTERM);
+            if (kill_status < 0)
+            {
+                kill(pid, SIGKILL);
+            }
+        }
+        read_keyboard_env();
+        read_from_rc(NULL);
+        daemonize_keydogger();
+    }
     else if (strcmp(argv[1], "debug") == 0)
     {
         if (pid > 0)
         {
             kill(pid, SIGTERM);
         }
+        read_keyboard_env();
         read_from_rc(DEBUG_RC_PATH);
         keydogger_daemon();
     }
