@@ -9,7 +9,7 @@ CALLGRIND_FILE=benchmark.out
 
 .PHONY: build
 build: keydogger.h keydogger.c dependency-check
-	gcc -DKEYBOARD_EVENT_PATH=\"$(KEYBOARD_EVENT_PATH)\" -DDAEMON_NAME=\"$(DAEMON_NAME)\" -w keydogger.c -o keydogger
+	gcc -DDEBUG_MODE=0 -DDAEMON_NAME=\"$(DAEMON_NAME)\" -w keydogger.c -o keydogger
 
 .PHONY: dependency-check
 dependency-check:
@@ -20,9 +20,8 @@ dependency-check:
 	fi
 
 .PHONY: dev
-dev: keydogger.o
-	touch keydoggerrc
-	gcc -g -o keydogger keydogger.o
+dev: keydogger.h keydogger.c dependency-check
+	gcc -DDEBUG_MODE=1 -DKEYBOARD_EVENT_PATH=\"$(KEYBOARD_EVENT_PATH)\" -DDAEMON_NAME=\"$(DAEMON_NAME)\" -g -O0 keydogger.c -o keydogger -Wall  -Wextra -Wpedantic -Wsign-conversion -Wimplicit-function-declaration -Warray-bounds
 
 .PHONY: install
 install: build
