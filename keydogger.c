@@ -665,7 +665,7 @@ void keydogger_daemon()
     vkeyboard_device = open(UINPUT_PATH, O_WRONLY);
     if (vkeyboard_device < 0)
     {
-        printf("Error reading from %s\n", UINPUT_PATH);
+        printf("Error opening %s\n", UINPUT_PATH);
         exit(EOPEN);
     }
 
@@ -744,7 +744,7 @@ void keydogger_daemon()
         // if next is terminal, expand it
         if (next->is_leaf)
         {
-            // release trigger keys
+            // release last trigger keys
             event.value = 0;
             send_key_to_device(fkeyboard_device, event);
             if (is_shifted)
