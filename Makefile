@@ -29,8 +29,6 @@ install: build
 	mkdir -p $(PREFIX)
 	mv keydogger $(PREFIX)
 
-keydogger.o: keydogger.h keydogger.c dependency-check
-	gcc -DKEYBOARD_EVENT_PATH=\"$(KEYBOARD_EVENT_PATH)\" -DDAEMON_NAME=\"$(DAEMON_NAME)\" -g -O0 -c keydogger.c -o keydogger.o -Wall  -Wextra -Wpedantic -Wsign-conversion -Wimplicit-function-declaration -Warray-bounds
 
 .PHONY: debug
 debug: dev
