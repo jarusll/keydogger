@@ -135,5 +135,6 @@ void daemonize_keydogger();
 void keydogger_daemon();
 void init_virtual_device(int vkeyboard_device);
 void print_trie(struct trie *trie, size_t level);
+void read_keyboard_env();
 
 #endif

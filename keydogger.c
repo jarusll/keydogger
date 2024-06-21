@@ -19,7 +19,13 @@
 #include "keydogger.h"
 
 extern char **environ;
+
+#if DEBUG_MODE == 1
 static char *KEYBOARD_DEVICE = KEYBOARD_EVENT_PATH;
+#else
+static char *KEYBOARD_DEVICE = NULL;
+#endif
+
 static char *DAEMON = DAEMON_NAME;
 static struct trie *TRIE = NULL;
 
@@ -918,6 +924,18 @@ void print_trie(struct trie *trie, size_t level)
     {
         print_trie(trie->next[i], level + 1);
     }
+}
+
+void read_keyboard_env()
+{
+#if DEBUG_MODE == 0
+    KEYBOARD_DEVICE = getenv("KEYDOGGER_KEYBOARD");
+    if (KEYBOARD_DEVICE == NULL)
+    {
+        printf("Required environment variable missing - KEYDOGGER_KEYBOARD\n");
+        exit(EENV);
+    }
+#endif
 }
 
 int main(int argc, char *argv[])
