@@ -39,6 +39,8 @@
 #define ECOPY 23
 #define EUID 24
 #define EPASTE 25
+#define ECLEAN 26
+#define EOVER 27
 
 #define RC_PATH "keydoggerrc"
 #define UINPUT_PATH "/dev/uinput"
@@ -134,5 +136,6 @@ void daemonize_keydogger();
 void keydogger_daemon();
 void init_virtual_device(int vkeyboard_device);
 void print_trie(struct trie *trie, size_t level);
+void read_keyboard_env();
 
 #endif

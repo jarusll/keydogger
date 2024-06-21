@@ -19,7 +19,13 @@
 #include "keydogger.h"
 
 extern char **environ;
-static char *KEYBOARD_DEVICE = KEYBOARD_EVENT_PATH;
+
+#if DEBUG_MODE == 1
+static char *KEYBOARD_DEVICE = KEYDOGGER_KEYBOARD;
+#else
+static char *KEYBOARD_DEVICE = NULL;
+#endif
+
 static char *DAEMON = DAEMON_NAME;
 static struct trie *TRIE = NULL;
 
@@ -161,7 +167,7 @@ static int char_codes_to_key_codes[] = {
 
 static int key_codes_to_position[MAX_KEY_CODE];
 
-void init_key_to_char_map()
+void init_key_to_position_map()
 {
     memset(key_codes_to_position, -1, sizeof(key_codes_to_position));
     key_codes_to_position[KEY_SPACE] = 31;
@@ -301,8 +307,8 @@ void cleanup_trie(struct trie *trie)
 void cleanup()
 {
     close(fkeyboard_device);
-    ioctl(vkeyboard_device, UI_DEV_DESTROY);
     close(vkeyboard_device);
+    ioctl(vkeyboard_device, UI_DEV_DESTROY);
 
     cleanup_trie(TRIE);
 }
@@ -312,16 +318,15 @@ void wide_to_utf8(wchar_t *input, char *output)
     iconv_t cd = iconv_open("UTF-8", "WCHAR_T");
     size_t wcs_len = (wcslen(input) + 1) * sizeof(wchar_t);
     size_t utf8_len = (wcs_len + 1) * UTF8_SEQUENCE_MAXLEN;
-    char *utf8_buffer = malloc(utf8_len + 1);
     char **inbuf = (char **)&input;
     char **outbuf = (char **)&output;
-    utf8_buffer[utf8_len] = '\0';
     size_t ret = iconv(cd, inbuf, &wcs_len, outbuf, &utf8_len);
     if (ret == (size_t)-1)
     {
         wprintf(L"Error converting wchar string to utf8 - %ls\n", input);
         exit(ECVRT);
     }
+    iconv_close(cd);
 }
 
 void read_from_rc(char *path)
@@ -352,7 +357,7 @@ void read_from_rc(char *path)
         exit(EOPEN);
     }
 
-    wchar_t line[256];
+    wchar_t line[100];
     while (fgetws(line, sizeof(line), rc_file) != NULL)
     {
         // Tokenize to get key=value
@@ -364,6 +369,11 @@ void read_from_rc(char *path)
             if (value)
             {
                 wchar_t *newline = wcschr(value, L'\n');
+                // Handle overflow
+                if (newline == NULL){
+                    wprintf(L"Trigger & Expansion pair too long for trigger = %ls\n", key);
+                    exit(EOVER);
+                }
                 if (newline)
                 {
                     *newline = L'\0';
@@ -378,6 +388,8 @@ void read_from_rc(char *path)
                 wide_to_utf8(key, utf_key);
                 wide_to_utf8(value, utf_value);
                 push_trie(utf_key, utf_value);
+                free(utf_key);
+                free(utf_value);
             }
         }
     }
@@ -628,8 +640,31 @@ void init_virtual_device(int vkeyboard_device)
     };
 }
 
+void signal_cleanup_handler(int sig __attribute__((unused)))
+{
+    cleanup();
+    exit(0);
+}
+
 void keydogger_daemon()
 {
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = signal_cleanup_handler;
+    sigfillset(&sa.sa_mask); // Block all signals during handler execution
+
+    if (sigaction(SIGINT, &sa, NULL) == -1)
+    {
+        printf("Error cleaning up for SIGINT\n");
+        exit(ECLEAN);
+    }
+
+    if (sigaction(SIGTERM, &sa, NULL) == -1)
+    {
+        printf("Error cleaning up for SIGTERM\n");
+        exit(ECLEAN);
+    }
+
     fkeyboard_device = open(KEYBOARD_DEVICE, O_RDWR | O_APPEND, NULL);
     bool is_shifted = false;
 
@@ -641,13 +676,13 @@ void keydogger_daemon()
     vkeyboard_device = open(UINPUT_PATH, O_WRONLY);
     if (vkeyboard_device < 0)
     {
-        printf("Error reading from %s\n", UINPUT_PATH);
+        printf("Error opening %s\n", UINPUT_PATH);
         exit(EOPEN);
     }
 
     init_virtual_device(vkeyboard_device);
 
-    init_key_to_char_map();
+    init_key_to_position_map();
 
     struct input_event event = {0};
     struct trie *current_trie = TRIE;
@@ -720,7 +755,7 @@ void keydogger_daemon()
         // if next is terminal, expand it
         if (next->is_leaf)
         {
-            // release trigger keys
+            // release last trigger keys
             event.value = 0;
             send_key_to_device(fkeyboard_device, event);
             if (is_shifted)
@@ -896,6 +931,18 @@ void print_trie(struct trie *trie, size_t level)
     }
 }
 
+void read_keyboard_env()
+{
+#if DEBUG_MODE == 0
+    KEYBOARD_DEVICE = getenv("KEYDOGGER_KEYBOARD");
+    if (KEYBOARD_DEVICE == NULL)
+    {
+        printf("Required environment variable missing - KEYDOGGER_KEYBOARD\n");
+        exit(EENV);
+    }
+#endif
+}
+
 int main(int argc, char *argv[])
 {
     setlocale(LC_ALL, "");
@@ -921,6 +968,7 @@ int main(int argc, char *argv[])
             printf("Already running at pid %d\n", pid);
             exit(EXIT_SUCCESS);
         }
+        read_keyboard_env();
         read_from_rc(NULL);
         daemonize_keydogger();
     }
@@ -950,12 +998,28 @@ int main(int argc, char *argv[])
         }
         exit(EXIT_SUCCESS);
     }
+    else if (strcmp(argv[1], "restart") == 0)
+    {
+        if (pid > 0)
+        {
+            cleanup();
+            int kill_status = kill(pid, SIGTERM);
+            if (kill_status < 0)
+            {
+                kill(pid, SIGKILL);
+            }
+        }
+        read_keyboard_env();
+        read_from_rc(NULL);
+        daemonize_keydogger();
+    }
     else if (strcmp(argv[1], "debug") == 0)
     {
         if (pid > 0)
         {
             kill(pid, SIGTERM);
         }
+        read_keyboard_env();
         read_from_rc(DEBUG_RC_PATH);
         keydogger_daemon();
     }

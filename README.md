@@ -20,7 +20,7 @@ cd keydogger
 
 ## Configuration
 
-Configure `KEYBOARD_EVENT_PATH` in `Makefile`.
+Set the environment `KEYDOGGER_KEYBOARD` as the path to your keyboard device.
 It should be of the pattern `/dev/input/eventX`. X will be different for your system. You can use `evtest` to find out your keyboard device path.
 
 ## Installation
@@ -56,19 +56,13 @@ Here are some sample expansions you might like
 @backup=rsync -avz ~/important_files/ jarusll@homeserver:backups/
 ```
 
-### Start the daemon
+### Commands
 ```bash
 sudo keydogger start
-```
-
-### Query the daemon status
-```bash
 sudo keydogger status
-```
-
-### Stop the daemon
-```bash
 sudo keydogger stop
+# Restart if you want to switch keyboards or reload expansions
+sudo keydogger restart
 ```
 
 ## TODO
@@ -78,10 +72,8 @@ sudo keydogger stop
 - [x] Read trigger & expansions from `.keydoggerrc`
 ### v2
 - [x] Unicode support
-### v3
-- [ ] Support 2 keyboards
-- [ ] On the fly toggle
-- [ ] Add `on`, `off`, `find`, `get` subcommands
+### v2.1
+- [x] Keyboard path as environment Variable `KEYDOGGER_KEYBOARD`
 
 ## Acknowledgements
 - [emisilve86](https://github.com/emisilve86/Keylogger-Daemon-Linux) for their code
