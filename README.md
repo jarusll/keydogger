@@ -71,11 +71,6 @@ sudo keydogger status
 sudo keydogger stop
 ```
 
-## Acknowledgements
-- [emisilve86](https://github.com/emisilve86/Keylogger-Daemon-Linux) for their code
-- [Espanso](https://github.com/federico-terzi/espanso) for the `1000` microseconds of delay between events
-- [ydotool](https://github.com/ReimuNotMoe/ydotool) for direct mapping of `character code` to `Linux key code`
-
 ## TODO
 ### v1
 - [x] Daemonize it
@@ -83,3 +78,15 @@ sudo keydogger stop
 - [x] Read trigger & expansions from `.keydoggerrc`
 ### v2
 - [x] Unicode support
+### v3
+- [ ] Support 2 keyboards
+- [ ] On the fly toggle
+- [ ] Add `on`, `off`, `find`, `get` subcommands
+
+## Acknowledgements
+- [emisilve86](https://github.com/emisilve86/Keylogger-Daemon-Linux) for their code
+- [Espanso](https://github.com/federico-terzi/espanso) for the `1000` microseconds of delay between events
+- [ydotool](https://github.com/ReimuNotMoe/ydotool) for direct mapping of `character code` to `Linux key code`
+
+## Contributors
+- [gavinlaking](https://github.com/gavinlaking)
