@@ -357,7 +357,7 @@ void read_from_rc(char *path)
         exit(EOPEN);
     }
 
-    wchar_t line[100];
+    wchar_t line[256];
     while (fgetws(line, sizeof(line), rc_file) != NULL)
     {
         // Tokenize to get key=value
