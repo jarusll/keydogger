@@ -58,11 +58,17 @@ Here are some sample expansions you might like
 
 ### Commands
 ```bash
-sudo keydogger start
+# -E flag to preseve env variables if you've already set KEYDOGGER_KEYBOARD
+sudo -E keydogger start
+# Here's another way to pass env variables
+sudo env KEYDOGGER_KEYBOARD=/dev/input/event<N> keydogger status
+
 sudo keydogger status
+
 sudo keydogger stop
+
 # Restart if you want to switch keyboards or reload expansions
-sudo keydogger restart
+sudo -E keydogger restart
 ```
 
 ## TODO
