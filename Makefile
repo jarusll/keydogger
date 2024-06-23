@@ -48,7 +48,7 @@ viz:
 .PHONY: clean
 clean:
 	-rm *.o > /dev/null 2>&1 || true
-	-rm keydogger > /dev/null 2>&1 || true
+	-rm keydogger -f > /dev/null 2>&1 || true
 	-rm callgrind* > /dev/null 2>&1 || true
 	-rm vgcore* > /dev/null 2>&1 || true
 	-rm *.out > /dev/null 2>&1 || true
