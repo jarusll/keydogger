@@ -9,7 +9,7 @@
 #define READABLE_KEYS 126
 #define LINUX_KEYS 50
 
-#define MAX_KEY_CODE 181
+#define MAX_KEY_CODE 182
 
 #define FLAG_UPPERCASE 128
 
