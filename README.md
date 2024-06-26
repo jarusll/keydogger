@@ -88,3 +88,6 @@ sudo -E keydogger restart
 
 ## Contributors
 - [gavinlaking](https://github.com/gavinlaking)
+
+## Contributing
+Patches are preffered over PR because this is a mirror of my personal git server.
