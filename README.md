@@ -86,8 +86,5 @@ sudo -E keydogger restart
 - [Espanso](https://github.com/federico-terzi/espanso) for the `1000` microseconds of delay between events
 - [ydotool](https://github.com/ReimuNotMoe/ydotool) for direct mapping of `character code` to `Linux key code`
 
-## Contributors
-- [gavinlaking](https://github.com/gavinlaking)
-
 ## Contributing
 Patches are preffered over PR because this is a mirror of my personal git server.
