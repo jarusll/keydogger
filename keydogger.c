@@ -755,18 +755,31 @@ void keydogger_daemon()
         // if next is terminal, expand it
         if (next->is_leaf)
         {
-            // release last trigger keys
+            struct trie *next_copy = next;
+            // RELEASE ALL TRIGGER KEYS
             event.value = 0;
+            // release last key
             send_key_to_device(fkeyboard_device, event);
-            if (is_shifted)
-            {
-                event.code = KEY_LEFTSHIFT;
-                send_key_to_device(fkeyboard_device, event);
-                event.code = KEY_RIGHTSHIFT;
-                send_key_to_device(fkeyboard_device, event);
-            }
             send_sync(fkeyboard_device);
 
+            event.code = KEY_LEFTSHIFT;
+            send_key_to_device(fkeyboard_device, event);
+
+            send_sync(fkeyboard_device);
+            event.code = KEY_RIGHTSHIFT;
+
+            send_key_to_device(fkeyboard_device, event);
+            send_sync(fkeyboard_device);
+
+            while (next_copy->parent != NULL)
+            {
+                event.code = next_copy->parent->keycode;
+                send_key_to_device(fkeyboard_device, event);
+                send_sync(fkeyboard_device);
+                next_copy = next_copy->parent;
+            }
+
+            // EXPAND
             send_backspace(vkeyboard_device, next->size);
             send_to_keyboard(vkeyboard_device, next->expansion);
 
