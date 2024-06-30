@@ -79,7 +79,9 @@ sudo -E keydogger restart
 ### v2
 - [x] Unicode support
 ### v2.1
-- [x] Keyboard path as environment Variable `KEYDOGGER_KEYBOARD`
+- [x] feat: Keyboard path as environment Variable `KEYDOGGER_KEYBOARD`
+### 2.2
+- [x] fix: Send keyup for all trigger keys to fix keypresses for characters common in trigger & expansion
 
 ## Acknowledgements
 - [emisilve86](https://github.com/emisilve86/Keylogger-Daemon-Linux) for their code
