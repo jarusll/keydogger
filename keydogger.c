@@ -14,6 +14,7 @@
 #include <locale.h>
 #include <iconv.h>
 #include <ctype.h>
+#include <errno.h>
 
 #define UTF8_SEQUENCE_MAXLEN 6
 #include "keydogger.h"
@@ -908,7 +909,7 @@ int is_running()
     if ((pgrep = popen(command, "r")) == NULL)
     {
         printf("Unable to check if \"%s\" daemon is running or not.\n", DAEMON);
-        exit(EPIPE);
+        exit(EPIP);
     }
     items_read = fscanf(pgrep, "%d", &pid);
     pclose(pgrep);
@@ -969,7 +970,7 @@ int main(int argc, char *argv[])
     if (!check_privileges())
     {
         printf("Need sudo privileges\n");
-        exit(EPERM);
+        exit(EPERMISSION);
     }
 
     pid_t pid;
