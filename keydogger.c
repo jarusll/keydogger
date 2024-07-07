@@ -14,6 +14,7 @@
 #include <locale.h>
 #include <iconv.h>
 #include <ctype.h>
+#include <sys/inotify.h>
 #include <errno.h>
 
 #define UTF8_SEQUENCE_MAXLEN 6
@@ -29,6 +30,7 @@ static char *KEYBOARD_DEVICE = NULL;
 
 static char *DAEMON = DAEMON_NAME;
 static struct trie *TRIE = NULL;
+static char *RC_FILE_PATH = "./keydoggerrc";
 
 char *DEBUG_RC_PATH = "./keydoggerrc";
 
@@ -279,7 +281,7 @@ void set_env_vars()
         char *uid = getenv("SUDO_UID");
         if (uid == NULL)
         {
-            printf("Error getting current users uid");
+            printf("Error getting current users uid\n");
             exit(EUID);
         }
         char xdg_runtime_path[100];
@@ -335,7 +337,7 @@ void read_from_rc(char *path)
     char *user = getlogin();
     if (user == NULL)
     {
-        printf("Error getting current user");
+        printf("Error getting current user\n");
         exit(EUSER);
     }
     char rc_file_path[256];
@@ -350,6 +352,7 @@ void read_from_rc(char *path)
     if (path != NULL)
     {
         strcpy(rc_file_path, path);
+        strcpy(rc_file_path, RC_FILE_PATH);
     }
     FILE *rc_file = fopen(rc_file_path, "r");
     if (rc_file == NULL)
@@ -371,7 +374,8 @@ void read_from_rc(char *path)
             {
                 wchar_t *newline = wcschr(value, L'\n');
                 // Handle overflow
-                if (newline == NULL){
+                if (newline == NULL)
+                {
                     wprintf(L"Trigger & Expansion pair too long for trigger = %ls\n", key);
                     exit(EOVER);
                 }
@@ -666,6 +670,19 @@ void keydogger_daemon()
         exit(ECLEAN);
     }
 
+    int watcher_fd = inotify_init1(IN_NONBLOCK);
+    if (watcher_fd == -1)
+    {
+        printf("Error inotify init\n");
+        exit(EINIT);
+    }
+    int add = inotify_add_watch(watcher_fd, RC_FILE_PATH, IN_ALL_EVENTS);
+    if (add == -1)
+    {
+        printf("Error inotify add\n");
+        exit(EADD);
+    }
+
     fkeyboard_device = open(KEYBOARD_DEVICE, O_RDWR | O_APPEND, NULL);
     bool is_shifted = false;
 
@@ -689,6 +706,19 @@ void keydogger_daemon()
     struct trie *current_trie = TRIE;
     while (1)
     {
+        struct inotify_event notify_event;
+        int length = read(watcher_fd, &notify_event, sizeof(notify_event));
+        if (length < 0 && errno != EAGAIN && errno != EWOULDBLOCK)
+        {
+            printf("Error reading from inotify instance\n");
+            exit(EREAD);
+        }
+        printf("%u\n", notify_event.mask);
+        if (notify_event.mask & IN_CLOSE_WRITE)
+        {
+            printf("Modified\n");
+        }
+
         int read_inputs = read(fkeyboard_device, &event, sizeof(struct input_event));
         if (read_inputs < 0)
         {
@@ -849,7 +879,7 @@ void daemonize_keydogger()
     fd = open("/var/log/keydogger.log", O_RDWR | O_CREAT | O_APPEND);
     if (fd < 0)
     {
-        printf("Error opening %s\n", "/var/log/keydogger.log");
+        printf("Error opening %s\n", "/var/log/keydogger.log\n");
         exit(EOPEN);
     }
     dup2(fd, STDIN_FILENO);
@@ -860,7 +890,7 @@ void daemonize_keydogger()
 
     if (chdir("/") < 0)
     {
-        printf("Error changing directory to /");
+        printf("Error changing directory to /\n");
         exit(ECHDIR);
     }
 
