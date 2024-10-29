@@ -876,7 +876,7 @@ bool check_privileges()
     int i = 0;
     while (environ[i] != NULL)
     {
-        if (strncmp("USER=ROOT", environ[i], 9) == 0)
+        if (strncmp("USER=root", environ[i], 9) == 0)
         {
             return true;
         }
