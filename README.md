@@ -80,8 +80,13 @@ sudo -E keydogger restart
 - [x] Unicode support
 ### v2.1
 - [x] feat: Keyboard path as environment Variable `KEYDOGGER_KEYBOARD`
-### 2.2
+### v2.2
 - [x] fix: Send keyup for all trigger keys to fix keypresses for characters common in trigger & expansion
+
+### v3
+- [ ] Throttle writes with Async IO
+- [ ] Ability to do ascii only
+- [ ] Wayland native
 
 ## Acknowledgements
 - [emisilve86](https://github.com/emisilve86/Keylogger-Daemon-Linux) for their code
