@@ -84,9 +84,10 @@ sudo -E keydogger restart
 - [x] fix: Send keyup for all trigger keys to fix keypresses for characters common in trigger & expansion
 
 ### v3
-- [ ] Throttle writes with Async IO
+- [ ] Async IO
 - [ ] Ability to do ascii only
 - [ ] Keychords for actions ie enable/disable, reload
+- [ ] Support for all keyboard keys
 
 ## Acknowledgements
 - [emisilve86](https://github.com/emisilve86/Keylogger-Daemon-Linux) for their code
