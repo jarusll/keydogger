@@ -9,8 +9,10 @@
 #define READABLE_KEYS 126
 #define LINUX_KEYS 50
 
+// TODO Where does this come from?
 #define MAX_KEY_CODE 182
 
+// TODO How about this?
 #define FLAG_UPPERCASE 128
 
 // Errors
