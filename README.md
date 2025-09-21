@@ -86,7 +86,7 @@ sudo -E keydogger restart
 ### v3
 - [ ] Throttle writes with Async IO
 - [ ] Ability to do ascii only
-- [ ] Wayland native
+- [ ] Keychords for actions ie enable/disable, reload
 
 ## Acknowledgements
 - [emisilve86](https://github.com/emisilve86/Keylogger-Daemon-Linux) for their code
